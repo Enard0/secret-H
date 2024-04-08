@@ -68,10 +68,10 @@ app.get("/subscribe", (req, res) => {
     GamesData[SessionId] = {}
     GamesData[SessionId]['Status'] = 'Waiting'
   }
-  if (!('Subscribed' in GamesData[SessionId])) {
-    GamesData[SessionId]['Subscribed'] = []
-  }
-  GamesData[SessionId]['Subscribed'].push(UserId)
+  //if (!('Subscribed' in GamesData[SessionId])) {
+  //  GamesData[SessionId]['Subscribed'] = []
+  //}
+  //GamesData[SessionId]['Subscribed'].push(UserId)
   if (!(SessionId in EventsToSend)) EventsToSend[SessionId] = []
   var lastevent = EventsToSend[SessionId].length
   const interval = setInterval(() => {
@@ -86,10 +86,10 @@ app.get("/subscribe", (req, res) => {
 
   res.on("close", () => {
     clearInterval(interval);
-    if (SessionId in GamesData && 'Subscribed' in GamesData[SessionId]) {
-      const index = GamesData[SessionId]['Subscribed'].indexOf(UserId);
-      GamesData[SessionId]['Subscribed'].splice(index, 1);
-    }
+    //if (SessionId in GamesData && 'Subscribed' in GamesData[SessionId]) {
+    //  const index = GamesData[SessionId]['Subscribed'].indexOf(UserId);
+    //  GamesData[SessionId]['Subscribed'].splice(index, 1);
+    //}
     if (SessionId in GamesData && 'Players' in GamesData[SessionId] && UserId in GamesData[SessionId]['Players']) {
       const index = GamesData[SessionId]['Players'].indexOf(UserId);
       GamesData[SessionId]['Players'].splice(index, 1);
@@ -169,6 +169,7 @@ app.post("/start", (req, res) => {
   shuffle(cardsc)
 
   GamesData[SessionId]['Cards'] = cardsc
+  GamesData[SessionId]['UsedCards'] = []
   if (!(SessionId in EventsToSend)) EventsToSend[SessionId] = [];
 
   const presidentid = Math.floor(Math.random() * players.length);
@@ -182,14 +183,13 @@ app.post("/start", (req, res) => {
   GamesData[SessionId]['CountC'] = 0
   GamesData[SessionId]['CountF'] = 0
   GamesData[SessionId]['Tracker'] = 0
+  GamesData[SessionId]['Veto'] = false
   GamesData[SessionId]['Status'] = 'Selecting Chancellor'
   GamesData[SessionId]['Config'] = {}
   GamesData[SessionId]['Config']['HideVoting'] = false
   GamesData[SessionId]['Config']['VoteTimeout'] = 10000
   GamesData[SessionId]['Config']['Tracker'] = 3
 
-
-  const joined = GamesData[SessionId]['Subscribed']
   EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'Started', 'For': 'All' })
   EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'Became President', 'For': [president] })
   res.sendStatus(200);
@@ -207,7 +207,7 @@ app.get("/players", (req, res) => {
     res.send('event: Failed\nreason: No Players\n\n');
     return;
   }
-  res.send(`event: getplayers\nplayers: ${JSON.stringify(GamesData[SessionId]['Players'])}\nlastP: ${GamesData[SessionId]['LastP']}\nlastC: ${GamesData[SessionId]['LastC']}\npresident: ${GamesData[SessionId]['President']}\n\n`)
+  res.send(`event: Get Players\nplayers: ${JSON.stringify(GamesData[SessionId]['Players'])}\nlastP: ${GamesData[SessionId]['LastP']}\nlastC: ${GamesData[SessionId]['LastC']}\npresident: ${GamesData[SessionId]['President']}\n\n`)
 });
 
 
@@ -219,7 +219,7 @@ app.get("/roles", (req, res) => {
     res.send('event: Failed\nreason: No Game\n\n');
     return;
   }
-  res.send(`event: getroles\nroles: ${JSON.stringify(GamesData[SessionId]['Roles'])}\n\n`)
+  res.send(`event: Get Roles\nroles: ${JSON.stringify(GamesData[SessionId]['Roles'])}\n\n`)
 });
 
 
@@ -229,9 +229,18 @@ app.get("/boards", (req, res) => {
     res.send('event: Failed\nreason: No Game\n\n');
     return;
   }
-  res.send(`event: getboards\nboards: ${JSON.stringify(GamesData[SessionId]['Boards'])}\ncountL: ${GamesData[SessionId]['CountL']}\ncountF: ${GamesData[SessionId]['CountF']}\ncountC: ${GamesData[SessionId]['CountC']}\n\n`)
+  res.send(`event: Get Boards\nboards: ${JSON.stringify(GamesData[SessionId]['Boards'])}\ncountL: ${GamesData[SessionId]['CountL']}\ncountF: ${GamesData[SessionId]['CountF']}\ncountC: ${GamesData[SessionId]['CountC']}\n\n`)
 });
 
+
+app.get("/cards", (req, res) => {
+  const SessionId = req.body.SessionId
+  if (!(SessionId in GamesData) || !('Cards' in GamesData[SessionId])) {
+    res.send('event: Failed\nreason: No Game\n\n');
+    return;
+  }
+  res.send(`event: Get Cards\ncards: ${JSON.stringify(GamesData[SessionId]['Cards'].slice(0, 3))}\n\n`)
+});
 
 // ---VOTING---
 
@@ -240,23 +249,15 @@ function endVoting(SessionId) {
   if (GamesData[SessionId]['Voting']['For'] > GamesData[SessionId]['Players'].length / 2) {
     GamesData[SessionId]['Tracker'] = 0
     GamesData[SessionId]['Status'] = 'President Cards'
-    if (GamesData[SessionId]['Config']['HideVoting']) {
-      EventsToSend[SessionId].push({
-        'Data': {
-          'For': GamesData[SessionId]['Voting']['For'].length,
-          'Against': GamesData[SessionId]['Voting']['Against'].length,
-          'Players': GamesData[SessionId]['Players'].length
-        }, 'Event': 'Voting Passed', 'For': 'All'
-      })
-    } else {
-      EventsToSend[SessionId].push({
-        'Data': {
-          'For': GamesData[SessionId]['Voting']['For'],
-          'Against': GamesData[SessionId]['Voting']['Against'],
-          'Players': GamesData[SessionId]['Players'],
-        }, 'Event': 'Voting Passed', 'For': 'All'
-      })
-    }
+
+    EventsToSend[SessionId].push({
+      'Data': {
+        'For': GamesData[SessionId]['Voting']['For'],
+        'Against': GamesData[SessionId]['Voting']['Against'],
+        'Players': GamesData[SessionId]['Players'],
+      }, 'Event': 'Voting Passed', 'For': 'All'
+    })
+
     EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'Pass Laws', 'For': [GamesData[SessionId]['President']] })
     console.log('succes')
     return
@@ -264,7 +265,12 @@ function endVoting(SessionId) {
   GamesData[SessionId]['Tracker']++;
   if (GamesData[SessionId]['Tracker'] >= GamesData[SessionId]['Config']['Tracker']) {
     GamesData[SessionId]['Tracker'] = 0
-    passLaw(GamesData[SessionId]['Cards'][0])
+    passLaw(GamesData[SessionId]['Cards'].shift())
+    if (GamesData[SessionId]['Cards'].length < 3) {
+      var cards = GamesData[SessionId]['UsedCards']
+      shuffle(cards)
+      GamesData[SessionId]['Cards'].push(...cards);
+    }
   }
 
 
@@ -274,23 +280,13 @@ function endVoting(SessionId) {
   GamesData[SessionId]['President'] = GamesData[SessionId]['Players'][GamesData[SessionId]['PresidentId']]
   GamesData[SessionId]['Status'] = 'Selecting Chancellor'
 
-  if (GamesData[SessionId]['Config']['HideVoting']) {
-    EventsToSend[SessionId].push({
-      'Data': {
-        'For': GamesData[SessionId]['Voting']['For'].length,
-        'Against': GamesData[SessionId]['Voting']['Against'].length,
-        'Players': GamesData[SessionId]['Players'].length
-      }, 'Event': 'Voting Failed', 'For': 'All'
-    })
-  } else {
-    EventsToSend[SessionId].push({
-      'Data': {
-        'For': GamesData[SessionId]['Voting']['For'],
-        'Against': GamesData[SessionId]['Voting']['Against'],
-        'Players': GamesData[SessionId]['Players'],
-      }, 'Event': 'Voting Failed', 'For': 'All'
-    })
-  }
+  EventsToSend[SessionId].push({
+    'Data': {
+      'For': GamesData[SessionId]['Voting']['For'],
+      'Against': GamesData[SessionId]['Voting']['Against'],
+      'Players': GamesData[SessionId]['Players'],
+    }, 'Event': 'Voting Failed', 'For': 'All'
+  })
   EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'Became President', 'For': [GamesData[SessionId]['President']] })
 }
 
@@ -346,6 +342,7 @@ app.post("/vote", (req, res) => {
     GamesData[SessionId]['Voting']['Against'].push(UserId)
   } GamesData[SessionId]['Voting']['Voted'].push(UserId)
 
+  EventsToSend[SessionId].push({ 'Data': { 'Player': UserId, 'Vote': (GamesData[SessionId]['Config']['HideVoting'] ? 'none' : vote) }, 'Event': 'Player Voted', 'For': 'All' })
   if (GamesData[SessionId]['Voting']['Voted'].length == GamesData[SessionId]['Players'].length) {
     clearTimeout(GamesData[SessionId]['Voting']['Timeout'])
     endVoting(SessionId)
@@ -353,8 +350,80 @@ app.post("/vote", (req, res) => {
 })
 
 
-function passLaw(Law){
-  //Do Nohing
+// choose law
+
+
+app.post("/rejectCard", (req, res) => {
+  const SessionId = req.body.SessionId
+  const UserId = req.body.UserId
+  const Rejected = req.body.Rejected
+  if (!(SessionId in GamesData) || GamesData[SessionId]['Status'] == 'Waiting') {
+    res.send('event: Failed\nreason: No Game\n\n');
+    return;
+  }
+  if (GamesData[SessionId]['Status'] == 'President Cards') {
+    if (GamesData[SessionId]['President'] != UserId) {
+      res.send('event: Failed\nreason: Not Your Turn')
+      return
+    }
+    if (!(GamesData[SessionId]['Cards'].slice(0, 3).includes(Rejected))) {
+      es.send('event: Failed\nreason: Incorrect Card')
+      return
+    }
+    const index = GamesData[SessionId]['Cards'].indexOf(Rejected);
+    GamesData[SessionId]['UsedCards'].push(...GamesData[SessionId]['Cards'].splice(index, 1));
+    GamesData[SessionId]['Status'] = 'Chancellor Cards'
+    EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'Chancellor Cards', 'For': 'All' })
+    EventsToSend[SessionId].push({ 'Data': { 'cards': GamesData[SessionId]['Cards'].slice(0, 2) }, 'Event': 'Pass Laws', 'For': [GamesData[SessionId]['Chancellor']] })
+    return
+  }
+  if (GamesData[SessionId]['Status'] == 'Chancellor Cards') {
+    res.send('event: Failed\nreason: Card Has Been Selected')
+    return
+  }
+  if (GamesData[SessionId]['Chancellor'] != UserId) {
+    res.send('event: Failed\nreason: Not Your Turn')
+    return
+  }
+  if (!(GamesData[SessionId]['Cards'].slice(0, 2).includes(Rejected))) {
+    es.send('event: Failed\nreason: Incorrect Card')
+    return
+  }
+  const index = GamesData[SessionId]['Cards'].indexOf(Rejected);
+  GamesData[SessionId]['UsedCards'].push(...GamesData[SessionId]['Cards'].splice(index, 1));
+  GamesData[SessionId]['Status'] = 'Pass Law';
+  const Law = GamesData[SessionId]['Cards'].shift();
+  passLaw(Law);
+  return
+})
+
+
+function passLaw(Law) {
+  if (GamesData[SessionId]['Cards'].length < 3) {
+    var cards = GamesData[SessionId]['UsedCards']
+    shuffle(cards)
+    GamesData[SessionId]['Cards'].push(...cards);
+  }
+  switch(Law){
+    case 'L':
+      GamesData[SessionId]['CountL']++
+    break;
+    case 'F':
+      GamesData[SessionId]['CountF']++
+    break;
+    case 'C':
+      GamesData[SessionId]['CountC']++
+    break;
+  }
+
+  GamesData[SessionId]['PresidentId']++;
+  if (GamesData[SessionId][PresidentId] >= GamesData[SessionId]['Players'].length) GamesData[SessionId]['PresidentId'] = 0
+  GamesData[SessionId]['LastP']=GamesData[SessionId]['President']
+  GamesData[SessionId]['LastC']=GamesData[SessionId]['Chancellor']
+  GamesData[SessionId]['President'] = GamesData[SessionId]['Players'][GamesData[SessionId]['PresidentId']]
+  GamesData[SessionId]['Status'] = 'Selecting Chancellor'
+  EventsToSend[SessionId].push({ 'Data': { 'law': Law }, 'Event': 'Law Passed', 'For': 'All' })
+  EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'Became President', 'For': [GamesData[SessionId]['President']] })
 }
 
 app.listen(port, () => {
