@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch localhost",
+            "name": "Launch front",
             "type": "firefox",
             "request": "launch",
             "reAttach": true,
@@ -15,12 +15,18 @@
             "preLaunchTask": "npm: dev",
         },
         {
-            "name": "Launch via NPM",
+            "name": "Launch server",
             "type": "node-terminal",
             "request": "launch",
             "cwd": "${workspaceRoot}/server",
             "command": "npm run dev",
         }
         
-    ]
+    ],"compounds": [
+        {
+          "name": "Full Run",
+          "configurations": ["Launch server", "Launch front"],
+          "stopAll": true
+        }
+      ]
 }

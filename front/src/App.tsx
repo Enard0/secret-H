@@ -1,31 +1,41 @@
-import { useState } from 'react'
-import Card from './assets/Card.tsx'
-import './App.css'
+import { useEffect, useState } from "react";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const [Event, setEvent] = useState({
+    event: "Event",
+    data: {},
+  });
+
+  useEffect(() => {
+    // opening a connection to the server to begin receiving events from it
+    const eventSource = new EventSource("/api/subscribe/1/1");
+    
+    // attaching a handler to receive message events
+    eventSource.onmessage = (event) => {
+      console.log('Event')
+      const data = JSON.parse(event.data)
+      console.log(data)
+      console.log(data.event)
+      setEvent({ ...data});
+    };
+    
+    // terminating the connection on component unmount
+    return () => eventSource.close();
+  }, []);
+
+  const fetchPromise = fetch("/api/rejectCard/1/1/", {method: 'POST'});
   
-  const enableDropping = (event: React.DragEvent<HTMLDivElement>) => { 
-    event.preventDefault();
-}
-const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    const id = event.dataTransfer.getData('text');
-    console.log(`Somebody dropped an element with id: ${id}`);
-}
+  function test(){
+  fetchPromise.then(response => {
+      console.log(response);
+    })
+  }
   return (
-    <>
-      <div>
-        <Card type='F'/>
+      <div className="flex flex-col items-start justify-start mt-6 gap-2">
+          <p>Event:{Event.event}</p>
+          <button onClick={test}>test</button>
       </div>
-      <h1>Vite + React</h1>
-      <div onDragOver={enableDropping} onDrop={handleDrop}>Drop Area</div>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-      </div>
-    </>
-  )
-}
+  );
+};
 
-export default App
+export default App;
