@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch front",
+            "name": "Launch browser",
             "type": "firefox",
             "request": "launch",
             "reAttach": true,
@@ -19,6 +19,13 @@
             "type": "node-terminal",
             "request": "launch",
             "cwd": "${workspaceRoot}/server",
+            "command": "npm run dev",
+        },
+        {
+            "name": "Launch front",
+            "type": "node-terminal",
+            "request": "launch",
+            "cwd": "${workspaceRoot}/front",
             "command": "npm run dev",
         }
         

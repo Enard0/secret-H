@@ -1,8 +1,0 @@
-const enableDropping = (event: React.DragEvent<HTMLDivElement>) => { 
-    event.preventDefault();
-}
-const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    const id = event.dataTransfer.getData('text');
-    console.log(`Somebody dropped an element with id: ${id}`);
-}
-<div onDragOver={enableDropping} onDrop={handleDrop}>Drop Area</div>

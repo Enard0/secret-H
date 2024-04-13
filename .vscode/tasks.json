@@ -7,8 +7,8 @@
         "script": "dev",
         "isBackground": true,
         "problemMatcher": {
-          "owner": "typescript",
-          "pattern": "$tsc",
+          "owner": "JavaScript",
+          "pattern": "$js",
           "background": {
             "activeOnStart": true,
             "beginsPattern": {
