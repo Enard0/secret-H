@@ -1,0 +1,4 @@
+div.Board-element, div.Board-element *{
+    display: inline;
+    width: 100px;
+}

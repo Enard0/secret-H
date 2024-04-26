@@ -1,47 +1,45 @@
-import ReactModal from "react-modal";
-import React, { useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
+import Config from "./Config";
 
-class Lobby extends React.Component {
-  
-  constructor ({ SessionId, UserId, Players, Spectators})  {
-    super();
-    this.SessionId = SessionId
-    this.UserId = UserId
-    this.Spectators = Spectators
-    this.Players = Players
-    console.debug(Players)
-    this.joined = Players.includes(UserId)
-  }
+const Lobby = ({ SessionId, UserId, _CanJoin, _Joined }) => {
+    const [CanJoin, setCanJoin] = useState(_CanJoin);
+    const [Joined, setJoined] = useState(_Joined);
 
-  Join = () => {fetch(`/api/join/${this.SessionId}/${this.UserId}/`, { method: "POST" }).then(response => {
-    if (response.status == 200) {
-      this.joined = true
+
+    useEffect(() => {
+        setCanJoin(_CanJoin);
+    }, [_CanJoin])
+
+    const Join = () => {
+        fetch(`/api/join/${SessionId}/${UserId}/`, { method: "POST" }).then(response => {
+            if (response.status == 200) {
+                setJoined(true)
+            }
+        })
     }
-  })}
 
-  Leave = () => {fetch(`/api/leave/${this.SessionId}/${this.UserId}/`, { method: "POST" }).then(response => {
-    if (response.status == 200) {
-      this.joined = false
+    const Leave = () => {
+        fetch(`/api/leave/${SessionId}/${UserId}/`, { method: "POST" }).then(response => {
+            if (response.status == 200) {
+                setJoined(false)
+            }
+        })
     }
-  })}
 
-  render () {
-    return (
-      <div>
-        <div className="Players">
-         {(() => {
-          const toRender = [];
 
-          for (let i = 0; i < this.Spectators.length; i++) {
-            toRender.push(<div key={i} className={this.Players.includes(this.Spectators[i]) ? "player" : "spectator"}><p>{this.Spectators[i]}</p></div>);
-          }
-          return toRender;
-        })()}
-        </div>
-        <button onClick={this.joined ? this.Leave : this.Join}>{this.joined?"Leave":"Join"}</button>
-      </div>
-    );
-  }
+    if (CanJoin) {
+        return (
+            <div>
+                <button onClick={Joined ? Leave : Join}>{Joined ? "Leave" : "Join"}</button>
+                <Config SessionId={SessionId} UserId={UserId}/>
+            </div>
+        );
+    }
+    return(
+    <div>
+        {Joined && <button>You cannot leave now</button>}
+    </div>
+    )
 }
 
 export default Lobby

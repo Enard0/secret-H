@@ -2,7 +2,7 @@ import ReactModal from "react-modal";
 import React from "react";
 import './Modal.css'
 
-class ExampleApp extends React.Component {
+class Example extends React.Component {
   constructor () {
     super();
     this.state = {
@@ -35,4 +35,4 @@ class ExampleApp extends React.Component {
   }
 }
 
-export default ExampleApp
+export default Example

@@ -1,0 +1,23 @@
+.Player-list>.spectator{
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.Player-list>.player{
+    color: #fff;
+}
+
+.Player-list>.player.H, .Player-list>.player.F{
+    color: rgb(83, 19, 19);
+}
+
+.Player-list>.player.C{
+    color: #f00;
+}
+
+.Player-list{
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: 300px;
+    width: 340px;
+    background-color: #222;
+}

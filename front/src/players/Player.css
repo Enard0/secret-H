@@ -1,0 +1,36 @@
+.user-data {
+    height: 50px;
+    line-height: 50px;
+    padding: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.user-data>* {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+
+.user-data>p {
+    margin-right: 20px;
+}
+
+.user-data>img {
+    height: 100%;
+    width: auto;
+    border-radius: 50%;
+}
+
+.line{
+    content: "";
+    border-width: 1px 0px 0px 0px;
+    border-style: solid;
+    border-color: white;
+    width: 80%;
+    margin: 10px auto;
+    display: block;
+    height: 0px;
+    padding: 0px;
+}

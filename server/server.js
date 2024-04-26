@@ -65,46 +65,52 @@ app.get("/subscribe/:SessionId/:UserId", (req, res) => {
     "Connection": 'keep-alive',
     'Cache-Control': 'no-cache'
   });
-  
+
   if (!(SessionId in GamesData)) {
     GamesData[SessionId] = {}
     GamesData[SessionId]['Status'] = 'Waiting'
   }
   if (!(SessionId in EventsToSend)) EventsToSend[SessionId] = []
   if (!('Spectators' in GamesData[SessionId])) {
-    GamesData[SessionId]['Spectators'] = new Set()
+    GamesData[SessionId]['Spectators'] = []
   }
-  GamesData[SessionId]['Spectators'].add(UserId)
+  if(!GamesData[SessionId]['Spectators'].includes(UserId)) GamesData[SessionId]['Spectators'].push(UserId)
   var lastevent = EventsToSend[SessionId].length
 
-  EventsToSend[SessionId].push({ 'Data': {'UserId': UserId}, 'Event': 'Spectator Joined', 'For': 'All' })
-  
+  EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Spectator Joined', 'For': 'All' })
+
   const interval = setInterval(() => {
     if (EventsToSend[SessionId].length > lastevent) {
       var event = EventsToSend[SessionId][lastevent]
+      console.log(event)
       if (event['For'] == 'All' || event['For'].includes(UserId)) {
         res.write(`data: {"event": "${event['Event']}","data": ${JSON.stringify(event['Data'])}}\n\n`)
       }
       lastevent++;
-    }else{
-      res.write('ping')
     }
-  }, 200);
+  }, 500);
+
+  const ping = setInterval(() => {
+    res.write('data: ping\n\n')
+  }, 2000)
   req.socket.on("close", () => {
     clearInterval(interval);
+    clearInterval(ping);
     //if (SessionId in GamesData && 'Subscribed' in GamesData[SessionId]) {
     //  const index = GamesData[SessionId]['Subscribed'].indexOf(UserId);
     //  GamesData[SessionId]['Subscribed'].splice(index, 1);
     //}
-    if (SessionId in GamesData && 'Players' in GamesData[SessionId] && GamesData[SessionId]['Players'].has(UserId)) {
-      GamesData[SessionId]['Players'].delete(UserId);
-      EventsToSend[SessionId].push({ 'Data': {'UserId': UserId}, 'Event': 'Player Left', 'For': 'All' })
+    if (SessionId in GamesData && 'Players' in GamesData[SessionId] && GamesData[SessionId]['Players'].includes(UserId)) {
+      const index = GamesData[SessionId]['Players'].indexOf(UserId);
+      GamesData[SessionId]['Players'].splice(index, 1);
+      EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Player Left', 'For': 'All' })
       console.log(`player left ${SessionId}:${UserId}`)
     }
     console.log(`disconnected ${SessionId}:${UserId}`)
-    if (SessionId in GamesData && 'Spectators' in GamesData[SessionId] && GamesData[SessionId]['Spectators'].has(UserId)) {
-      GamesData[SessionId]['Spectators'].delete(UserId);
-      EventsToSend[SessionId].push({ 'Data': {'UserId': UserId}, 'Event': 'Spectator Left', 'For': 'All' })
+    if (SessionId in GamesData && 'Spectators' in GamesData[SessionId] && GamesData[SessionId]['Spectators'].includes(UserId)) {
+      const index = GamesData[SessionId]['Spectators'].indexOf(UserId);
+      GamesData[SessionId]['Spectators'].splice(index, 1);
+      EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Spectator Left', 'For': 'All' })
     }
     res.end();
   });
@@ -124,17 +130,17 @@ app.post("/join/:SessionId/:UserId", (req, res) => {
     GamesData[SessionId] = {}
     GamesData[SessionId]['Status'] = 'Waiting'
   }
-  if ('Players' in GamesData[SessionId] && GamesData[SessionId]['Players'].has(UserId)) {
+  if ('Players' in GamesData[SessionId] && GamesData[SessionId]['Players'].includes(UserId)) {
     res.statusMessage = "Joined already";
     res.status(405).end();
     return
   }
   if (!('Players' in GamesData[SessionId])) {
-    GamesData[SessionId]['Players'] = new Set()
+    GamesData[SessionId]['Players'] = []
   }
-  GamesData[SessionId]['Players'].add(UserId)
+  if(!GamesData[SessionId]['Players'].includes(UserId)) GamesData[SessionId]['Players'].push(UserId)
   console.log(`Player joined ${SessionId}:${UserId}`)
-  EventsToSend[SessionId].push({ 'Data': {'UserId': UserId}, 'Event': 'Player Joined', 'For': 'All' })
+  EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Player Joined', 'For': 'All' })
   res.sendStatus(200);
 });
 
@@ -151,14 +157,15 @@ app.post("/leave/:SessionId/:UserId", (req, res) => {
     GamesData[SessionId] = {}
     GamesData[SessionId]['Status'] = 'Waiting'
   }
-  if (!('Players' in GamesData[SessionId]) || !GamesData[SessionId]['Players'].has(UserId)) {
+  if (!('Players' in GamesData[SessionId]) || !GamesData[SessionId]['Players'].includes(UserId)) {
     res.statusMessage = "Not Joined";
     res.status(405).end();
     return
   }
-  GamesData[SessionId]['Players'].delete(UserId)
+  const index = GamesData[SessionId]['Players'].indexOf(UserId);
+  GamesData[SessionId]['Players'].splice(index, 1);
   console.log(`player left ${SessionId}:${UserId}`)
-  EventsToSend[SessionId].push({ 'Data': {'UserId': UserId}, 'Event': 'Player Left', 'For': 'All' })
+  EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Player Left', 'For': 'All' })
   res.sendStatus(200);
 });
 
@@ -220,6 +227,7 @@ app.post("/start/:SessionId", (req, res) => {
   if (!(SessionId in EventsToSend)) EventsToSend[SessionId] = [];
 
   const presidentid = Math.floor(Math.random() * players.length);
+  console.log(players)
   const president = players[presidentid]
   GamesData[SessionId]['President'] = president
   GamesData[SessionId]['PresidentId'] = presidentid
@@ -256,7 +264,7 @@ app.get("/players/:SessionId/", (req, res) => {
     res.status(405).end();
     return;
   }
-  res.json({"players": JSON.stringify([...GamesData[SessionId]['Players']]),"lastP":GamesData[SessionId]['LastP'],"lastC":GamesData[SessionId]['LastC'],"president":GamesData[SessionId]['President']})
+  res.json({ "players": JSON.stringify([...GamesData[SessionId]['Players']]), "lastP": GamesData[SessionId]['LastP'], "lastC": GamesData[SessionId]['LastC'], "president": GamesData[SessionId]['President'] })
 });
 
 
@@ -273,7 +281,7 @@ app.get("/spectators/:SessionId/", (req, res) => {
     res.status(405).end();
     return;
   }
-  res.json({"spectators": JSON.stringify([...GamesData[SessionId]['Spectators']])})
+  res.json({ "spectators": JSON.stringify([...GamesData[SessionId]['Spectators']]) }).end()
 });
 
 
@@ -297,7 +305,7 @@ app.get("/boards/:SessionId", (req, res) => {
     res.status(405).end();
     return;
   }
-  res.json({"boards":JSON.stringify(GamesData[SessionId]['Boards']),"countL":GamesData[SessionId]['CountL'],"countF":GamesData[SessionId]['CountF'],"countC":GamesData[SessionId]['CountC']})
+  res.json({ "boards": JSON.stringify(GamesData[SessionId]['Boards']), "Lcount": GamesData[SessionId]['CountL'], "Fcount": GamesData[SessionId]['CountF'], "Ccount": GamesData[SessionId]['CountC'] })
 });
 
 
@@ -314,8 +322,7 @@ app.get("/cards/:SessionId/:UserId", (req, res) => {
 app.get("/status/:SessionId/", (req, res) => {
   const SessionId = req.params.SessionId
   if (!(SessionId in GamesData) || !('Status' in GamesData[SessionId])) {
-    res.statusMessage = "No Game";
-    res.status(405).end();
+    res.send("Waiting")
     return;
   }
   res.send(GamesData[SessionId]['Status'])
@@ -389,7 +396,7 @@ app.post("/chancellor/:SessionId/:UserId", (req, res) => {
     res.status(405).end();
     return;
   }
-  if (Candidate == UserId || Candidate == GamesData[SessionId]['LastP'] || Candidate == GamesData[SessionId]['LastC'] || !(GamesData[SessionId]['Players'].has(Candidate))) {
+  if (Candidate == UserId || Candidate == GamesData[SessionId]['LastP'] || Candidate == GamesData[SessionId]['LastC'] || !(GamesData[SessionId]['Players'].includes(Candidate))) {
     res.statusMessage = "Invalid choice";
     res.status(405).end();
     return;
@@ -419,7 +426,7 @@ app.post("/vote/:SessionId/:UserId", (req, res) => {
     res.status(405).end();
     return;
   }
-  if (!(GamesData[SessionId]['Players'].has(UserId)) || (GamesData[SessionId]['Voting']['Voted'].includes(UserId))) {
+  if (!(GamesData[SessionId]['Players'].includes(UserId)) || (GamesData[SessionId]['Voting']['Voted'].includes(UserId))) {
     res.statusMessage = "Already Voted";
     res.status(405).end();
     return;
