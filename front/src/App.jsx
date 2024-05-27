@@ -16,13 +16,15 @@ const App = ({ SessionId, UserId }) => {
 
   const [BoardData, setBoards] = useState(
     {
-        "F": ["Fempty", "FcheckRole", "Fpresident", "Fkill", "Fveto", "Fwin"],
-        "L": ["Lempty", "Lempty", "Lempty", "Lempty", "Lwin"],
-        "C": ["Ccheck", "Cchange", "Cadd", "Cmeet", "Creveal", "Cwin"]
+      "F": ["Fempty", "FcheckRole", "Fpresident", "Fkill", "Fveto", "Fwin"],
+      "L": ["Lempty", "Lempty", "Lempty", "Lempty", "Lwin"],
+      "C": ["Ccheck", "Cchange", "Cadd", "Cmeet", "Creveal", "Cwin"]
     });
   const [Lcount, setLcount] = useState(0);
   const [Fcount, setFcount] = useState(0);
   const [Ccount, setCcount] = useState(0);
+
+  var EventId = 0;
 
   const getPlayers = () => {
     fetch(`/api/players/${SessionId}/`).then(response => {
@@ -73,7 +75,31 @@ const App = ({ SessionId, UserId }) => {
     })
   }
 
+  const EventHandler = (event) => {
+    if ("next" in event)
+      EventId = event.next
+    if (event.event == "ping" || event.event == "Failed") {
+      return
+    }
+    console.debug(event)
+    setEvent(event.event)
+    switch (event.event) {
+      case 'Player Left':
+      case 'Player Joined':
+        getPlayers()
+        return;
 
+      case 'Spectator Left':
+      case 'Spectator Joined':
+        getSpectators()
+        return;
+
+      case 'Started':
+        getStatus()
+        getRoles()
+        break;
+    }
+  }
 
   useEffect(() => {
     getPlayers()
@@ -83,35 +109,23 @@ const App = ({ SessionId, UserId }) => {
 
 
     // opening a connection to the server to begin receiving events from it
-    const eventSource = new EventSource(`/api/subscribe/${SessionId}/${UserId}`);
+    //const eventSource = new EventSource(`/api/subscribe/${SessionId}/${UserId}`);
+    const eventss = setInterval(() => {
+      fetch(`/api/event/${SessionId}/${UserId}/${EventId}`).then(response => {
+        console.log(response);
+        if (response.status == 200) {
+          response.json().then(json => { EventHandler(json) })
+        }
+      })
+
+    }, 200)
     // attaching a handler to receive message events
-    eventSource.onmessage = (event) => {
-      if (event.data == "ping") {
-        return
-      }
-      const data = JSON.parse(event.data)
-      console.debug(data)
-      setEvent(data.event)
-      switch (data.event) {
-        case 'Player Left':
-        case 'Player Joined':
-          getPlayers()
-          return;
-
-        case 'Spectator Left':
-        case 'Spectator Joined':
-          getSpectators()
-          return;
-
-        case 'Started':
-          getStatus()
-          getRoles()
-          break;
-      }
-    };
+    //eventSource.onmessage = (event) => {
+    //  EventHandler(event)   
+    //};
 
     // terminating the connection on component unmount
-    return () => eventSource.close();
+    //return () => eventSource.close();
   }, []);
 
   //() => {
@@ -123,8 +137,8 @@ const App = ({ SessionId, UserId }) => {
       <p>State:{State}</p>
       <PlayerList _Players={Players} _Spectators={Spectators} _Roles={Roles} />
       <Lobby SessionId={SessionId} UserId={UserId} _CanJoin={State == "Waiting"} _Joined={Players.includes(UserId)} />
-      {State != "Waiting" && State !="None" ? <Boards _Boards={BoardData} _L={Lcount} _F={Fcount} _C={Ccount}/> : ''}
-      <RoleModal _isOpen={Event=='Started'}/>
+      {State != "Waiting" && State != "None" ? <Boards _Boards={BoardData} _L={Lcount} _F={Fcount} _C={Ccount} /> : ''}
+      <RoleModal _isOpen={Event == 'Started'} />
     </div>
   );
 };

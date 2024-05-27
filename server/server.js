@@ -55,7 +55,68 @@ app.post("/api/token", async (req, res) => {
   res.send({ access_token });
 });
 
+app.get("/event/:SessionId/:UserId/:EventId", (req, res) => {
+  const SessionId = req.params.SessionId
+  const UserId = req.params.UserId
+  const EventId = parseInt(req.params.EventId)
 
+  if (!(SessionId in GamesData)) {
+    GamesData[SessionId] = {}
+    GamesData[SessionId]['Status'] = 'Waiting'
+  }
+
+  if (!(SessionId in EventsToSend)) EventsToSend[SessionId] = []
+  if (!('Spectators' in GamesData[SessionId])) {
+    GamesData[SessionId]['Spectators'] = {}
+  }
+
+  const pingdsc = () => {
+    if (SessionId in GamesData && 'Players' in GamesData[SessionId] && GamesData[SessionId]['Players'].includes(UserId)) {
+      const index = GamesData[SessionId]['Players'].indexOf(UserId);
+      GamesData[SessionId]['Players'].splice(index, 1);
+      EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Player Left', 'For': 'All' })
+      console.log(`player left ${SessionId}:${UserId}`)
+    }
+
+    console.log(`disconnected ${SessionId}:${UserId}`)
+    if (SessionId in GamesData && 'Spectators' in GamesData[SessionId] && UserId in GamesData[SessionId]['Spectators']) {
+      delete GamesData[SessionId]["Spectators"][UserId]
+      EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Spectator Left', 'For': 'All' })
+    }
+  }
+  console.log(EventsToSend[SessionId])
+  if (UserId in GamesData[SessionId]['Spectators']) {
+    clearTimeout(GamesData[SessionId]['Spectators'][UserId])
+    GamesData[SessionId]['Spectators'][UserId] = setTimeout(pingdsc, 2000)
+  }
+  else {
+    res.json({ "event": "joined", "next":EventsToSend[SessionId].length })
+    EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Spectator Joined', 'For': 'All' })
+    GamesData[SessionId]['Spectators'][UserId] = setTimeout(pingdsc, 2000)
+    return
+  }
+
+  if (EventsToSend[SessionId].length < EventId) {
+    res.json({ "next":EventsToSend[SessionId].length, "event": "Failed" })
+    return;
+    res.statusMessage = `${EventsToSend[SessionId].length} max`;
+    res.status(405).end();
+    return;
+  }
+
+  if (EventsToSend[SessionId].length == EventId) {
+    res.json({ "next":EventId, "event": "ping" })
+    return;
+  }
+  if (EventsToSend[SessionId][EventId]['For'] == 'All' || EventsToSend[SessionId][EventId]['For'].includes(UserId)){
+    res.json({ "next":EventId+1, "event": EventsToSend[SessionId][EventId]['Event'], "data": JSON.stringify(EventsToSend[SessionId][EventId]['Data']) })
+  }else{
+    res.json({ "next":EventId+1, "event": "ping" })
+  }
+})
+
+
+/*
 app.get("/subscribe/:SessionId/:UserId", (req, res) => {
   const SessionId = req.params.SessionId
   const UserId = req.params.UserId
@@ -74,7 +135,7 @@ app.get("/subscribe/:SessionId/:UserId", (req, res) => {
   if (!('Spectators' in GamesData[SessionId])) {
     GamesData[SessionId]['Spectators'] = []
   }
-  if(!GamesData[SessionId]['Spectators'].includes(UserId)) GamesData[SessionId]['Spectators'].push(UserId)
+  if (!GamesData[SessionId]['Spectators'].includes(UserId)) GamesData[SessionId]['Spectators'].push(UserId)
   var lastevent = EventsToSend[SessionId].length
 
   EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Spectator Joined', 'For': 'All' })
@@ -115,6 +176,7 @@ app.get("/subscribe/:SessionId/:UserId", (req, res) => {
     res.end();
   });
 });
+*/
 
 
 app.post("/join/:SessionId/:UserId", (req, res) => {
@@ -138,7 +200,7 @@ app.post("/join/:SessionId/:UserId", (req, res) => {
   if (!('Players' in GamesData[SessionId])) {
     GamesData[SessionId]['Players'] = []
   }
-  if(!GamesData[SessionId]['Players'].includes(UserId)) GamesData[SessionId]['Players'].push(UserId)
+  if (!GamesData[SessionId]['Players'].includes(UserId)) GamesData[SessionId]['Players'].push(UserId)
   console.log(`Player joined ${SessionId}:${UserId}`)
   EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Player Joined', 'For': 'All' })
   res.sendStatus(200);
@@ -281,7 +343,7 @@ app.get("/spectators/:SessionId/", (req, res) => {
     res.status(405).end();
     return;
   }
-  res.json({ "spectators": JSON.stringify([...GamesData[SessionId]['Spectators']]) }).end()
+  res.json({ "spectators": JSON.stringify([...Object.keys(GamesData[SessionId]['Spectators'])]) }).end()
 });
 
 
