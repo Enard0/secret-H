@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
@@ -10,7 +10,16 @@ function Main() {
 
   const onSubmit = () => {
     setIsSubmitted(true)
-}
+  }
+
+  useEffect(() => {
+    fetch(`/api/qj`).then(response => {
+      if (response.status == 200) {
+        response.json().then(json => {setUserId(json.Id)})
+      }
+    })
+  },[])
+
   if(!IsSubmitted)
   return (
     <div>

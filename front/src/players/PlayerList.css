@@ -14,6 +14,22 @@
     color: #f00;
 }
 
+.player.president, .player.chancellor{
+    text-decoration: underline;
+}
+
+.player.lastC, .player.lastP{
+    text-decoration:line-through;
+}
+
+.player.president, .player.lastP{
+    text-decoration-color: #0f0;
+}
+
+.player.chancellor, .player.chancellor{
+    text-decoration-color: #00f;
+}
+
 .Player-list{
     overflow-y: scroll;
     overflow-x: hidden;

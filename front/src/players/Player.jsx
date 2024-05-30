@@ -1,12 +1,18 @@
 import React from "react";
 import './Player.css'
 
-const User = ({ _Classes, _Name, _Url }) => {
+const getName = (UserId) => {return UserId}
+
+const getUrl = (UserId) => {return "https://cdn.discordapp.com/avatars/682689661486891019/0f8f56cf265e44684be079c7d6378d00?size=1024"}
+
+const User = ({ _Classes="", _Id, _func=null }) => {
     return (
-        <div className={`user-item ${_Classes}`}>
+        <div className={`user-item ${_Classes}`} onClick={_func ? ()=>{_func(_Id)} : ()=>{}}>
             <div className={`user-data ${_Classes}`}>
-                <p>{_Name}</p>
-                <img src={_Url} />            
+                <div className={_func ? "func" : ""}>
+                    <img src={getUrl(_Id)} />
+                    <p>{getName(_Id)}</p>
+                </div>
             </div>
             <div className="line"/>
         </div>

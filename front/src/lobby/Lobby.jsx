@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Config from "./Config";
 
-const Lobby = ({ SessionId, UserId, _CanJoin, _Joined }) => {
+const Lobby = ({ SessionId, UserId, _CanJoin, _Joined, _Playernr}) => {
     const [CanJoin, setCanJoin] = useState(_CanJoin);
     const [Joined, setJoined] = useState(_Joined);
 
@@ -31,7 +31,7 @@ const Lobby = ({ SessionId, UserId, _CanJoin, _Joined }) => {
         return (
             <div>
                 <button onClick={Joined ? Leave : Join}>{Joined ? "Leave" : "Join"}</button>
-                <Config SessionId={SessionId} UserId={UserId}/>
+                <Config SessionId={SessionId} UserId={UserId} _Playernr={_Playernr}/>
             </div>
         );
     }

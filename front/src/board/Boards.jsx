@@ -32,10 +32,12 @@ const Cfields = { "Cadd": CaddCards, "Cchange": Cchange, "Ccheck": Ccheck, "Cemp
 
 const Boards = ({ _Boards, _L, _C, _F }) => {
 
-    const [L, setL] = useState(_L)
+    /*const [Board, setBoard] = useState(_Boards);
+    const [L, setL] = useState(_L);
     const [C, setC] = useState(_C);
     const [F, setF] = useState(_F);
 
+    useEffect()
     useEffect(() => {
         setL(_L);
     }, [_L]);
@@ -46,32 +48,37 @@ const Boards = ({ _Boards, _L, _C, _F }) => {
 
     useEffect(() => {
         setF(_F);
-    }, [_F]);
+    }, [_F]);*/
 
     return (
         <div className="Boards">
-            <BoardL _Board={_Boards["L"]} _Count={L} />
-            <BoardF _Board={_Boards["F"]} _Count={F} />
-            <BoardC _Board={_Boards["C"]} _Count={C} />
+            <BoardL _Board={_Boards["L"]} _Count={_L} />
+            <BoardF _Board={_Boards["F"]} _Count={_F} />
+            <BoardC _Board={_Boards["C"]} _Count={_C} />
         </div>
     );
 }
 
 const BoardF = ({ _Board, _Count }) => {
     const [Count, setCount] = useState(_Count);
+    const [Board, setBoard] = useState(_Board);
+
+    useEffect(() => {
+        setBoard(_Board);
+    }, [_Board]);
 
     useEffect(() => {
         setCount(_Count);
     }, [_Count]);
-
+    
     return (
         <div className="Board-F">
             {(() => {
                 const toRender = [];
 
-                for (let i = 0; i < _Board.length; i++) {
+                for (let i = 0; i < Board.length; i++) {
                     toRender.push(<div key={i} className="Board-element">
-                        <img className="Board-image" src={Ffields[_Board[i]]} />
+                        <img className="Board-image" src={Ffields[Board[i]]} />
                         {Count > i ? <img className="Board-card" src={Fcard} /> : ''}
                     </div>);
                 }
@@ -84,6 +91,11 @@ const BoardF = ({ _Board, _Count }) => {
 
 const BoardL = ({ _Board, _Count }) => {
     const [Count, setCount] = useState(_Count);
+    const [Board, setBoard] = useState(_Board);
+
+    useEffect(() => {
+        setBoard(_Board);
+    }, [_Board]);
 
     useEffect(() => {
         setCount(_Count);
@@ -94,9 +106,9 @@ const BoardL = ({ _Board, _Count }) => {
             {(() => {
                 const toRender = [];
 
-                for (let i = 0; i < _Board.length; i++) {
+                for (let i = 0; i < Board.length; i++) {
                     toRender.push(<div key={i} className="Board-element">
-                        <img className="Board-image" src={Lfields[_Board[i]]} />
+                        <img className="Board-image" src={Lfields[Board[i]]} />
                         {Count > i ? <img className="Board-card" src={Lcard} /> : ''}
                     </div>);
                 }
@@ -109,6 +121,11 @@ const BoardL = ({ _Board, _Count }) => {
 
 const BoardC = ({ _Board, _Count }) => {
     const [Count, setCount] = useState(_Count);
+    const [Board, setBoard] = useState(_Board);
+
+    useEffect(() => {
+        setBoard(_Board);
+    }, [_Board]);
 
     useEffect(() => {
         setCount(_Count);
@@ -119,9 +136,9 @@ const BoardC = ({ _Board, _Count }) => {
             {(() => {
                 const toRender = [];
 
-                for (let i = 0; i < _Board.length; i++) {
+                for (let i = 0; i < Board.length; i++) {
                     toRender.push(<div key={i} className="Board-element">
-                        <img className="Board-image" src={Cfields[_Board[i]]} />
+                        <img className="Board-image" src={Cfields[Board[i]]} />
                         {Count > i ? <img className="Board-card" src={Ccard} /> : ''}
                     </div>);
                 }

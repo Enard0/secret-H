@@ -7,6 +7,7 @@ config({ path: "../.env" });
 
 const app = express();
 const port = 3001;
+var curid = 0;
 
 // Allow express to parse JSON bodies
 app.use(json());
@@ -55,6 +56,11 @@ app.post("/api/token", async (req, res) => {
   res.send({ access_token });
 });
 
+app.get("/qj", (req, res) => {
+  curid++;
+  res.json({"Id": curid});
+});
+
 app.get("/event/:SessionId/:UserId/:EventId", (req, res) => {
   const SessionId = req.params.SessionId
   const UserId = req.params.UserId
@@ -84,7 +90,6 @@ app.get("/event/:SessionId/:UserId/:EventId", (req, res) => {
       EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Spectator Left', 'For': 'All' })
     }
   }
-  console.log(EventsToSend[SessionId])
   if (UserId in GamesData[SessionId]['Spectators']) {
     clearTimeout(GamesData[SessionId]['Spectators'][UserId])
     GamesData[SessionId]['Spectators'][UserId] = setTimeout(pingdsc, 2000)
@@ -94,6 +99,11 @@ app.get("/event/:SessionId/:UserId/:EventId", (req, res) => {
     EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Spectator Joined', 'For': 'All' })
     GamesData[SessionId]['Spectators'][UserId] = setTimeout(pingdsc, 2000)
     return
+  }
+  
+  if(EventId==-1){
+    res.json({ "next":Math.max(0,EventsToSend[SessionId].length-1), "event": "Failed" })
+    return;
   }
 
   if (EventsToSend[SessionId].length < EventId) {
@@ -267,12 +277,15 @@ app.post("/start/:SessionId", (req, res) => {
   shuffle(rolec);
 
   var rolep = new Object()
-
+  var revrole = new Object()
   for (let i = 0; i < players.length; i++) {
     rolep[players[i]] = rolec[i]
+    if (!(rolec[i] in revrole)) revrole[rolec[i]] = []
+    revrole[rolec[i]].push(players[i])
   }
 
   GamesData[SessionId]['Roles'] = rolep
+  GamesData[SessionId]['RevRoles'] = revrole
 
   var cardsc = new Array()
 
@@ -294,6 +307,7 @@ app.post("/start/:SessionId", (req, res) => {
   GamesData[SessionId]['President'] = president
   GamesData[SessionId]['PresidentId'] = presidentid
   GamesData[SessionId]['Chancellor'] = null
+  GamesData[SessionId]['Candidate'] = null
   GamesData[SessionId]['LastP'] = null
   GamesData[SessionId]['LastC'] = null
   GamesData[SessionId]['CountL'] = 0
@@ -304,7 +318,7 @@ app.post("/start/:SessionId", (req, res) => {
   GamesData[SessionId]['Status'] = 'Selecting Chancellor'
   GamesData[SessionId]['Config'] = {}
   GamesData[SessionId]['Config']['HideVoting'] = false
-  GamesData[SessionId]['Config']['VoteTimeout'] = 10000
+  GamesData[SessionId]['Config']['VoteTimeout'] = 100000
   GamesData[SessionId]['Config']['Tracker'] = 3
 
   EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'Started', 'For': 'All' })
@@ -326,9 +340,19 @@ app.get("/players/:SessionId/", (req, res) => {
     res.status(405).end();
     return;
   }
-  res.json({ "players": JSON.stringify([...GamesData[SessionId]['Players']]), "lastP": GamesData[SessionId]['LastP'], "lastC": GamesData[SessionId]['LastC'], "president": GamesData[SessionId]['President'] })
+  res.json({"players":GamesData[SessionId]['Players'],})
 });
 
+app.get("/gov/:SessionId/", (req, res) => {
+  const SessionId = req.params.SessionId
+  //const UserId = req.params.UserId
+  if (!(SessionId in GamesData)) {
+    res.statusMessage = "No Game";
+    res.status(405).end();
+    return;
+  }
+  res.json({"lastP": GamesData[SessionId]['LastP'], "lastC": GamesData[SessionId]['LastC'], "president": GamesData[SessionId]['President'], "chancellor": GamesData[SessionId]['Chancellor'] })
+});
 
 app.get("/spectators/:SessionId/", (req, res) => {
   const SessionId = req.params.SessionId
@@ -351,12 +375,12 @@ app.get("/roles/:SessionId/:UserId", (req, res) => {
   const SessionId = req.params.SessionId
   const UserId = req.params.UserId
 
-  if (!(SessionId in GamesData) || !('Roles' in GamesData[SessionId])) {
+  if (!(SessionId in GamesData) || !('Roles' in GamesData[SessionId]) || !('RevRoles' in GamesData[SessionId])) {
     res.statusMessage = "No Game";
     res.status(405).end();
     return;
   }
-  res.json(GamesData[SessionId]['Roles'])
+  res.json({"Player":UserId in GamesData[SessionId]['Roles'] ? GamesData[SessionId]['Roles'][UserId] : "N", "All":GamesData[SessionId]["RevRoles"], "AllN": GamesData[SessionId]['Roles']})
 });
 
 
@@ -395,9 +419,10 @@ app.get("/status/:SessionId/", (req, res) => {
 function endVoting(SessionId) {
   if (GamesData[SessionId]['Status'] != 'Voting')
     return
-  if (GamesData[SessionId]['Voting']['For'] > GamesData[SessionId]['Players'].length / 2) {
+  if (GamesData[SessionId]['Voting']['For'].length > GamesData[SessionId]['Players'].length / 2) {
     GamesData[SessionId]['Tracker'] = 0
     GamesData[SessionId]['Status'] = 'President Cards'
+    GamesData[SessionId]['Chancellor'] = GamesData[SessionId]['Candidate']
 
     EventsToSend[SessionId].push({
       'Data': {
@@ -424,7 +449,7 @@ function endVoting(SessionId) {
 
 
   GamesData[SessionId]['PresidentId']++;
-  if (GamesData[SessionId][PresidentId] >= GamesData[SessionId]['Players'].length) GamesData[SessionId]['PresidentId'] = 0
+  if (GamesData[SessionId]["PresidentId"] >= GamesData[SessionId]['Players'].length) GamesData[SessionId]['PresidentId'] = 0
 
   GamesData[SessionId]['President'] = GamesData[SessionId]['Players'][GamesData[SessionId]['PresidentId']]
   GamesData[SessionId]['Status'] = 'Selecting Chancellor'
@@ -463,21 +488,21 @@ app.post("/chancellor/:SessionId/:UserId", (req, res) => {
     res.status(405).end();
     return;
   }
-  GamesData[SessionId]['Chancellor'] = Candidate
+  GamesData[SessionId]['Candidate'] = Candidate
   GamesData[SessionId]['Voting'] = {}
   GamesData[SessionId]['Voting']['For'] = []
   GamesData[SessionId]['Voting']['Against'] = []
   GamesData[SessionId]['Voting']['Voted'] = []
-  GamesData[SessionId]['Status'] == 'Voting'
-  EventsToSend[SessionId].push({ 'Data': { 'President': UserId, 'Chancellor': Candidate }, 'Event': 'Voting', 'For': 'All' })
-  GamesData[SessionId]['Voting']['Timeout'] = setTimeout(endVoting(SessionId), GamesData[SessionId]['Config']['VoteTimeout']);
+  GamesData[SessionId]['Status'] = 'Voting'
+  EventsToSend[SessionId].push({ 'Data': {'Candidate': Candidate }, 'Event': 'Voting', 'For': 'All' })
+  GamesData[SessionId]['Voting']['Timeout'] = setTimeout(() => endVoting(SessionId), GamesData[SessionId]['Config']['VoteTimeout']);
   res.sendStatus(200)
 })
 
 app.post("/vote/:SessionId/:UserId", (req, res) => {
   const SessionId = req.params.SessionId
   const UserId = req.params.UserId
-  const vote = req.body.Candidate
+  const vote = req.body.Vote
   if (!(SessionId in GamesData) || GamesData[SessionId]['Status'] == 'Waiting') {
     res.statusMessage = "No Game";
     res.status(405).end();
