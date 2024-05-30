@@ -439,7 +439,7 @@ function endVoting(SessionId) {
   GamesData[SessionId]['Tracker']++;
   if (GamesData[SessionId]['Tracker'] >= GamesData[SessionId]['Config']['Tracker']) {
     GamesData[SessionId]['Tracker'] = 0
-    passLaw(GamesData[SessionId]['Cards'].shift())
+    passLaw(SessionId,GamesData[SessionId]['Cards'].shift())
     if (GamesData[SessionId]['Cards'].length < 3) {
       var cards = GamesData[SessionId]['UsedCards']
       shuffle(cards)
@@ -583,13 +583,13 @@ app.post("/rejectCard/:SessionId/:UserId", (req, res) => {
   GamesData[SessionId]['UsedCards'].push(...GamesData[SessionId]['Cards'].splice(index, 1));
   GamesData[SessionId]['Status'] = 'Pass Law';
   const Law = GamesData[SessionId]['Cards'].shift();
-  passLaw(Law);
+  passLaw(SessionId,Law);
   res.sendStatus(200)
   return
 })
 
 
-function passLaw(Law) {
+function passLaw(SessionId,Law) {
   if (GamesData[SessionId]['Cards'].length < 3) {
     var cards = GamesData[SessionId]['UsedCards']
     shuffle(cards)
@@ -617,7 +617,7 @@ function passLaw(Law) {
     }
   }
   GamesData[SessionId]['PresidentId']++;
-  if (GamesData[SessionId][PresidentId] >= GamesData[SessionId]['Players'].length) GamesData[SessionId]['PresidentId'] = 0
+  if (GamesData[SessionId]["PresidentId"] >= GamesData[SessionId]['Players'].length) GamesData[SessionId]['PresidentId'] = 0
   GamesData[SessionId]['LastP'] = GamesData[SessionId]['President']
   GamesData[SessionId]['LastC'] = GamesData[SessionId]['Chancellor']
   GamesData[SessionId]['President'] = GamesData[SessionId]['Players'][GamesData[SessionId]['PresidentId']]

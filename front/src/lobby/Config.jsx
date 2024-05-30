@@ -6,9 +6,9 @@ const Config = ({ SessionId, UserId,  _Playernr }) => {
 
     const [Cards, setCards] = useState(
         {
-            "F": 0,
-            "L": 0,
-            "C": 0
+            "F": 10,
+            "L": 5,
+            "C": 8
         }
     );
 

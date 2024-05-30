@@ -2,7 +2,7 @@ import { useEffect, useState, SyntheticEvent, useRef, } from "react";
 import PlayerList from "./players/PlayerList";
 import Lobby from "./lobby/Lobby";
 import Boards from "./board/Boards";
-import {RoleModal,VotingModal} from "./Modals/Modals";
+import { RoleModal, VotingModal } from "./Modals/Modals";
 
 import './App.css'
 //import Setup from "./Startgame/Setup";
@@ -110,11 +110,10 @@ const App = ({ SessionId, UserId }) => {
         return;
 
       case 'Started':
-        getBoards()
         getRoles()
-        getGov()
-        getStatus()
-        break;
+
+      case 'Law Passed':
+        getBoards()
 
       case 'Voting Failed':
         getGov()
@@ -167,7 +166,7 @@ const App = ({ SessionId, UserId }) => {
     fetch(`/api/chancellor/${SessionId}/${UserId}`, {
       method: "POST",
       body: JSON.stringify({
-        Candidate:Chosen,
+        Candidate: Chosen,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8"
@@ -176,19 +175,22 @@ const App = ({ SessionId, UserId }) => {
   }
 
   return (
-    <div className={"state "+State.replace(/\s+/g, '-')}>
+    <div className={"state " + State.replace(/\s+/g, '-')}>
       <p>Event:{Event}</p>
       <p>State:{State}</p>
       <p>Data:{JSON.stringify(Data)}</p>
-      <PlayerList _Players={Players} _Spectators={Spectators} _Roles={Roles.AllN} _Gov={Gov} _func={UserId == Gov["president"] && State=='Selecting Chancellor' ? selectChancellor : null} />
+      <PlayerList _Players={Players} _Spectators={Spectators} _Roles={Roles.AllN} _Gov={Gov} _func={UserId == Gov["president"] && State == 'Selecting Chancellor' ? selectChancellor : null} />
       <Lobby SessionId={SessionId} UserId={UserId} _CanJoin={State == "Waiting"} _Joined={Players.includes(UserId)} _Playernr={Players.length} />
 
       {Gov.president == UserId && <button className="CConfirm" disabled={Chosen == 0 ? true : false} onClick={chooseChancellor}>Confirm chancellor</button>}
       {State != "Waiting" && State != "None" ? <Boards _Boards={BoardData} _L={Lcount} _F={Fcount} _C={Ccount} /> : ''}
 
 
+      <VotingModal _isOpen={Event == "Voting"} _Candidate={"Candidate" in Data ? Data["Candidate"] : 0} UserId={UserId} SessionId={SessionId} />
+
+
+
       <RoleModal _isOpen={Event == 'Started'} _UserRole={Roles.Player} _Roles={Roles.All} UserId={UserId} />
-      <VotingModal _isOpen={Event == "Voting"} _Candidate={"Candidate" in Data ? Data["Candidate"]:0} UserId={UserId} SessionId={SessionId}/>
     </div>
   );
 };
