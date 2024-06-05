@@ -3,12 +3,14 @@ import PlayerList from "./players/PlayerList";
 import Lobby from "./lobby/Lobby";
 import Boards from "./board/Boards";
 import { RoleModal, VotingModal } from "./Modals/Modals";
+import { CardsModal } from "./Modals/CardsModal";
 
 import './App.css'
 //import Setup from "./Startgame/Setup";
 const App = ({ SessionId, UserId }) => {
 
   const [Data, setData] = useState({});
+  const [Cards, setCards] = useState([]);
   const [State, setState] = useState('None');
   const [Event, setEvent] = useState('None');
 
@@ -77,6 +79,14 @@ const App = ({ SessionId, UserId }) => {
     })
   }
 
+  const getCards = () => {
+    fetch(`/api/cards/${SessionId}/${UserId}`).then(response => {
+      if (response.status == 200) {
+        response.json().then(json => { setCards(json) })
+      }
+    })
+  }
+
   const getBoards = () => {
     fetch(`/api/boards/${SessionId}/`).then(response => {
       if (response.status == 200) {
@@ -97,7 +107,6 @@ const App = ({ SessionId, UserId }) => {
       return
     }
     console.debug(event)
-    setEvent(event.event)
     switch (event.event) {
       case 'Player Left':
       case 'Player Joined':
@@ -125,7 +134,11 @@ const App = ({ SessionId, UserId }) => {
         getStatus()
         break;
 
+      case 'Pass Laws':
+        getStatus()
+        getCards()
     }
+    setEvent(event.event)
   }
 
   useEffect(() => {
@@ -137,7 +150,8 @@ const App = ({ SessionId, UserId }) => {
 
     // opening a connection to the server to begin receiving events from it
     //const eventSource = new EventSource(`/api/subscribe/${SessionId}/${UserId}`);
-    const eventss = setInterval(() => {
+    //const eventss = 
+    setInterval(() => {
       fetch(`/api/event/${SessionId}/${UserId}/${EventId.current}`).then(response => {
         if (response.status == 200) {
           response.json().then(json => { EventHandler(json) })
@@ -154,9 +168,11 @@ const App = ({ SessionId, UserId }) => {
     //return () => eventSource.close();
   }, []);
 
+  //useEffect(() => {setIsPlayer(Players.includes(UserId))}, [Players])
+
   const selectChancellor = (id) => {
     console.log(id)
-    if (!Players.includes(id) || Gov.president != UserId || Gov.president == id || Gov.lastC == id || Gov.lastP == id) return false
+    if (!Players.includes(id) || Gov.president != UserId || Gov.president == id || Gov.lastC == id || (Gov.lastP == id && Players.length > 5)) return false
     setChosen(id)
     console.log(id)
     return true
@@ -175,22 +191,25 @@ const App = ({ SessionId, UserId }) => {
   }
 
   return (
-    <div className={"state " + State.replace(/\s+/g, '-')}>
+    <div className={"state " + State.replace(/\s+/g, '-') + (Players.includes(UserId.toString()) ? " isPlayer" : " isSpectator") + (Players.length<=5 && " lessThan")}>
       <p>Event:{Event}</p>
       <p>State:{State}</p>
+      <p>isP: {Players.includes(UserId.toString())}</p>
       <p>Data:{JSON.stringify(Data)}</p>
       <PlayerList _Players={Players} _Spectators={Spectators} _Roles={Roles.AllN} _Gov={Gov} _func={UserId == Gov["president"] && State == 'Selecting Chancellor' ? selectChancellor : null} />
-      <Lobby SessionId={SessionId} UserId={UserId} _CanJoin={State == "Waiting"} _Joined={Players.includes(UserId)} _Playernr={Players.length} />
+      <Lobby SessionId={SessionId} UserId={UserId} _CanJoin={State == "Waiting"} _Joined={Players.includes(UserId.toString())} _Playernr={Players.length} />
 
       {Gov.president == UserId && <button className="CConfirm" disabled={Chosen == 0 ? true : false} onClick={chooseChancellor}>Confirm chancellor</button>}
       {State != "Waiting" && State != "None" ? <Boards _Boards={BoardData} _L={Lcount} _F={Fcount} _C={Ccount} /> : ''}
+      {Players.includes(UserId.toString()) && (<div>
+        test
+        <VotingModal _isOpen={Event == "Voting"} _Candidate={"Candidate" in Data ? Data["Candidate"] : 0} UserId={UserId} SessionId={SessionId} />
 
+        <CardsModal _isOpen={Event == "Pass Laws"} _Cards={Cards} _Chan={State == 'President Cards' ? Gov.chancellor : 0} SessionId={SessionId} UserId={UserId} />
 
-      <VotingModal _isOpen={Event == "Voting"} _Candidate={"Candidate" in Data ? Data["Candidate"] : 0} UserId={UserId} SessionId={SessionId} />
-
-
-
-      <RoleModal _isOpen={Event == 'Started'} _UserRole={Roles.Player} _Roles={Roles.All} UserId={UserId} />
+        <RoleModal _isOpen={Event == 'Started'} _UserRole={Roles.Player} _Roles={Roles.All} UserId={UserId} />
+      </div>
+      )}
     </div>
   );
 };

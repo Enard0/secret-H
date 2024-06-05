@@ -29,7 +29,13 @@
 .user-data.selected>div.func{
     background-color: rgba(173, 94, 3, 0.2);
 }
-.user-data:not(.selected):hover>div.func{
+
+.player.user-item:not(.president):not(.lastC):not(.lastP) .user-data:not(.selected):hover>div.func{
+    background-color: rgba(173, 94, 3, 0.1);
+}
+
+.lessThan .player.user-item:not(.president):not(.lastC) .user-data:not(.selected):hover>div.func
+{
     background-color: rgba(173, 94, 3, 0.1);
 }
 

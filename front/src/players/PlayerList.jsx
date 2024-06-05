@@ -27,6 +27,10 @@ const PlayerList = ({ _Spectators, _Players, _Roles, _Gov = { 'president': 0, "l
     setRoles(_Roles);
   }, [_Roles])
 
+  useEffect(() => {
+    if(_func==null) setSelected(null);
+  }, [_func])
+
   const getClasses = (Id) => {
     var classes = []
     if (Players.includes(Id)) {

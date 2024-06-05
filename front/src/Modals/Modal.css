@@ -103,3 +103,19 @@
 .VotingButtons > div > span{
   font-size: 100px;
 }
+
+
+.card > img{
+  width: 100px;
+}
+
+.card{
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.Cards{
+  display: flex;
+  justify-content: center;
+
+}
