@@ -2,13 +2,7 @@ import React, { useEffect, useState } from "react";
 import Config from "./Config";
 
 const Lobby = ({ SessionId, UserId, _CanJoin, _Joined, _Playernr}) => {
-    const [CanJoin, setCanJoin] = useState(_CanJoin);
     const [Joined, setJoined] = useState(_Joined);
-
-
-    useEffect(() => {
-        setCanJoin(_CanJoin);
-    }, [_CanJoin])
 
     const Join = () => {
         fetch(`/api/join/${SessionId}/${UserId}/`, { method: "POST" }).then(response => {
@@ -27,7 +21,7 @@ const Lobby = ({ SessionId, UserId, _CanJoin, _Joined, _Playernr}) => {
     }
 
 
-    if (CanJoin) {
+    if (_CanJoin) {
         return (
             <div>
                 <button onClick={Joined ? Leave : Join}>{Joined ? "Leave" : "Join"}</button>

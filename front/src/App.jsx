@@ -6,6 +6,7 @@ import { RoleModal, VotingModal } from "./Modals/Modals";
 import { CardsModal } from "./Modals/CardsModal";
 
 import './App.css'
+import { WinModal } from "./Modals/ActionModal";
 //import Setup from "./Startgame/Setup";
 const App = ({ SessionId, UserId }) => {
 
@@ -13,6 +14,7 @@ const App = ({ SessionId, UserId }) => {
   const [Cards, setCards] = useState([]);
   const [State, setState] = useState('None');
   const [Event, setEvent] = useState('None');
+  const [PopupWin, setPopupWin] = useState(0)
 
   const [Spectators, setSpectators] = useState([]);
   const [Players, setPlayers] = useState([]);
@@ -120,9 +122,19 @@ const App = ({ SessionId, UserId }) => {
 
       case 'Started':
         getRoles()
+        getBoards()
+        getGov()
+        getStatus()
+        break;
 
       case 'Law Passed':
+        const dat = JSON.parse(event.data)
+        if (dat.field != null)
+          cardAction(dat.field)
         getBoards()
+        getGov()
+        getStatus()
+        break;
 
       case 'Voting Failed':
         getGov()
@@ -137,8 +149,17 @@ const App = ({ SessionId, UserId }) => {
       case 'Pass Laws':
         getStatus()
         getCards()
+
+      case 'Win':
+        setData(JSON.parse(event.data))
     }
     setEvent(event.event)
+  }
+  
+  const cardAction = (act) => {
+    switch (act) {
+      
+    }
   }
 
   useEffect(() => {
@@ -168,8 +189,6 @@ const App = ({ SessionId, UserId }) => {
     //return () => eventSource.close();
   }, []);
 
-  //useEffect(() => {setIsPlayer(Players.includes(UserId))}, [Players])
-
   const selectChancellor = (id) => {
     console.log(id)
     if (!Players.includes(id) || Gov.president != UserId || Gov.president == id || Gov.lastC == id || (Gov.lastP == id && Players.length > 5)) return false
@@ -191,7 +210,7 @@ const App = ({ SessionId, UserId }) => {
   }
 
   return (
-    <div className={"state " + State.replace(/\s+/g, '-') + (Players.includes(UserId.toString()) ? " isPlayer" : " isSpectator") + (Players.length<=5 && " lessThan")}>
+    <div className={"state " + State.replace(/\s+/g, '-') + (Players.includes(UserId.toString()) ? " isPlayer" : " isSpectator") + (Players.length <= 5 && " lessThan")}>
       <p>Event:{Event}</p>
       <p>State:{State}</p>
       <p>isP: {Players.includes(UserId.toString())}</p>
@@ -202,12 +221,13 @@ const App = ({ SessionId, UserId }) => {
       {Gov.president == UserId && <button className="CConfirm" disabled={Chosen == 0 ? true : false} onClick={chooseChancellor}>Confirm chancellor</button>}
       {State != "Waiting" && State != "None" ? <Boards _Boards={BoardData} _L={Lcount} _F={Fcount} _C={Ccount} /> : ''}
       {Players.includes(UserId.toString()) && (<div>
-        test
         <VotingModal _isOpen={Event == "Voting"} _Candidate={"Candidate" in Data ? Data["Candidate"] : 0} UserId={UserId} SessionId={SessionId} />
 
         <CardsModal _isOpen={Event == "Pass Laws"} _Cards={Cards} _Chan={State == 'President Cards' ? Gov.chancellor : 0} SessionId={SessionId} UserId={UserId} />
 
         <RoleModal _isOpen={Event == 'Started'} _UserRole={Roles.Player} _Roles={Roles.All} UserId={UserId} />
+
+        <WinModal _isOpen={Event == 'Win'} _Type={Data["party"]}/>
       </div>
       )}
     </div>

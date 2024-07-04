@@ -6,20 +6,11 @@ import './Modal.css'
 
 ReactModal.setAppElement('#root');
 
-export const RoleModal = ({ _isOpen, _UserRole, _Roles, UserId }) => {
+export const RoleModal = ({ _isOpen, _UserRole, _Roles, _Meet = false, UserId }) => {
     const [isOpen, setIsOpen] = useState(false)
-    const [UserRole, setUserRole] = useState('L')
-    const [Roles, setRoles] = useState(_Roles)
 
     const handleCloseModal = () => setIsOpen(false)
 
-    useEffect(() => {
-        setUserRole(_UserRole)
-    }, [_UserRole])
-
-    useEffect(() => {
-        setRoles(_Roles)
-    }, [_Roles])
 
     useEffect(() => {
         if (_isOpen) setIsOpen(_isOpen)
@@ -30,18 +21,18 @@ export const RoleModal = ({ _isOpen, _UserRole, _Roles, UserId }) => {
         <div>
             <ReactModal isOpen={isOpen} className="Modal" overlayClassName="Overlay">
                 <div className="Content">
-                    <div className="role-self"><div>Twoja rola: <Role _Role={UserRole} _Id={0} /></div></div>
-                    {(UserRole == "C" || UserRole == "F") && UserRole in Roles ? (() => {
+                    <div className="role-self"><div>Twoja rola: <Role _Role={_UserRole} _Id={0} /></div></div>
+                    {((_UserRole == "C" && _Meet) || _UserRole == "F") && _UserRole in _Roles ? (() => {
                         var torender = []
                         var tid = 1
-                        for (const i of Roles[UserRole]) {
+                        for (const i of _Roles[_UserRole]) {
                             if (i != UserId) {
-                                torender.push(<div><Role _Role={UserRole} _Id={tid} /><p>Us: {i}</p></div>)
+                                torender.push(<div><Role _Role={_UserRole} _Id={tid} /><p>Us: {i}</p></div>)
                                 tid++
                             }
                         }
-                        if (UserRole == "F") {
-                            torender.push(<div>H:{Roles.H} <Role _Role={"H"} _Id={0} /></div>)
+                        if (_UserRole == "F") {
+                            torender.push(<div>H:{_Roles.H} <Role _Role={"H"} _Id={0} /></div>)
                         }
                         console.log(torender)
                         return <div className="role-other">{torender}</div>
@@ -96,6 +87,63 @@ export const VotingModal = ({ _isOpen, _Candidate = 0, SessionId, UserId }) => {
                         </div>
                     </div>
                 </div>
+            </ReactModal>
+        </div>
+    );
+}
+
+export const PostVotingModal = ({ _isOpen, _For, _Against, _All, UserId }) => {
+    const [isOpen, setIsOpen] = useState(false)
+    const [Abstain, setAbstain] = useState(_All)
+
+    const handleCloseModal = () => setIsOpen(false)
+
+    useEffect(() => {
+        setAbstain(_All.difference(_For).difference(_Against))
+    }, [_For,_Against,_All])
+
+    useEffect(() => {
+        if (_isOpen) setIsOpen(_isOpen)
+    }, [_isOpen])
+
+
+    return (
+        <div>
+            <ReactModal isOpen={isOpen} className="Modal" overlayClassName="Overlay">
+                <div className="Content">
+                    <div className="postVote-for"><div>Za: </div>
+                    {(() => {
+                        var torender = []
+                        for (const i of _For) {
+                            torender.push(<div><User _Id={i}/></div>)
+                        }
+                        return torender
+                    })()}
+                    </div>
+                    <div className="postVote-against"><div>Przeciw: </div>
+                    {(() => {
+                        var torender = []
+                        for (const i of _Against) {
+                            torender.push(<div><User _Id={i}/></div>)
+                        }
+                        return torender
+                    })()}
+                    </div>
+                    <div className="postVote-abstain"><div>Wstrzymano: </div>
+                    {(() => {
+                        var torender = []
+                        for (const i of Abstain) {
+                            torender.push(<div><User _Id={i}/></div>)
+                        }
+                        return torender
+                    })()}
+                    </div>
+                </div>
+                <button className="close" onClick={handleCloseModal}>
+                    <span className="material-symbols-outlined" >
+                        close
+                    </span>
+                </button>
             </ReactModal>
         </div>
     );
