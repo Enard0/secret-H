@@ -1,9 +1,10 @@
 .Player-list>.spectator{
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.2);
 }
 
 .Player-list>.player{
     color: #fff;
+    font-weight: 300;
 }
 
 .Player-list>.player.H, .Player-list>.player.F{

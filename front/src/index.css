@@ -77,6 +77,10 @@ button:hover:not([disabled]) {
 
   -moz-font-feature-settings: 'liga';
   -moz-osx-font-smoothing: grayscale;
+
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
 }
 
 *:has(>.material-symbols-outlined){

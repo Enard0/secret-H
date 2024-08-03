@@ -35,24 +35,6 @@ const Cfields = { "Cadd": CaddCards, "Cchange": Cchange, "Ccheck": Ccheck, "Cemp
 
 const Boards = ({ _Boards, _L, _C, _F }) => {
 
-    /*const [Board, setBoard] = useState(_Boards);
-    const [L, setL] = useState(_L);
-    const [C, setC] = useState(_C);
-    const [F, setF] = useState(_F);
-
-    useEffect()
-    useEffect(() => {
-        setL(_L);
-    }, [_L]);
-
-    useEffect(() => {
-        setC(_C);
-    }, [_C]);
-
-    useEffect(() => {
-        setF(_F);
-    }, [_F]);*/
-
     return (
         <div className="Boards">
             <BoardL _Board={_Boards["L"]} _Count={_L} />

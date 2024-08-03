@@ -5,9 +5,9 @@ import User from "./Player";
 
 const PlayerList = ({ _Spectators, _Players, _Roles, _Gov = { 'president': 0, "lastC": 0, "lastP": 0, "chancellor": 0 }, _func = null, _Dead = [] }) => {
 
-  const [Spectators, setSpectators] = useState(_Spectators);
+  //const [Spectators, setSpectators] = useState(_Spectators);
   //const [Players, setPlayers] = useState(_Players);
-  const [Roles, setRoles] = useState(_Roles);
+  //const [Roles, setRoles] = useState(_Roles);
   const [Selected, setSelected] = useState(null);
   //const [Dead, setDead] = useState(_Dead);
   const [FullP, setFullP] = useState(_Players)
@@ -41,7 +41,7 @@ const PlayerList = ({ _Spectators, _Players, _Roles, _Gov = { 'president': 0, "l
     var classes = []
     if (_Players.includes(Id)) {
       classes.push("player")
-      if (Id in Roles) classes.push(Roles[Id])
+      if (Id in _Roles) classes.push(_Roles[Id])
     } else {
       classes.push("spectator")
     }

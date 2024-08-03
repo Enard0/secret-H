@@ -9,14 +9,14 @@ import Ccard from "../assets/policy/communist.png"
 
 const Cards = { "L": Lcard, "F": Fcard, "C": Ccard }
 
-const Card = ({ _Card, func }) => {
+export const Card = ({ _Card, func }) => {
     return (
         <div className="card" onClick={() => func(_Card)}>
             <img src={Cards[_Card]} />
         </div>
     )
 }
-export const CardsModal = ({ _isOpen, _Cards = [], _Chan = 0, SessionId, UserId }) => {
+export const CardsModal = ({ _isOpen, _Cards = [], _Chan = 0, _Veto= false, SessionId, UserId }) => {
     const [isOpen, setIsOpen] = useState(false)
 
     const handleCloseModal = () => setIsOpen(false)
@@ -38,6 +38,15 @@ export const CardsModal = ({ _isOpen, _Cards = [], _Chan = 0, SessionId, UserId 
         }).then(response => {console.log(response)})
     };
 
+    const Veto = () =>{
+        handleCloseModal()
+        fetch(`/api/veto/${SessionId}/${UserId}`, {
+            method: "POST",
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        })
+    }
     if (_Cards.length == 3 && _Chan != 0) {
 
         return (
@@ -70,6 +79,8 @@ export const CardsModal = ({ _isOpen, _Cards = [], _Chan = 0, SessionId, UserId 
                         <Card _Card={_Cards[0]} func={Reject}/>
                         <Card _Card={_Cards[1]} func={Reject}/>
                     </div>
+                    {_Veto===true && <button onClick={Veto}>VETO</button>}
+                    {_Veto==="disabled" && <button onClick={Veto} disabled={true}>VETO</button>}
                 </div>
             </ReactModal>
         </div>

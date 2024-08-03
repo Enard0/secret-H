@@ -92,15 +92,10 @@ export const VotingModal = ({ _isOpen, _Candidate = 0, SessionId, UserId }) => {
     );
 }
 
-export const PostVotingModal = ({ _isOpen, _For, _Against, _All, UserId }) => {
+export const PostVotingModal = ({ _isOpen, _For, _Against, _Abstain, UserId }) => {
     const [isOpen, setIsOpen] = useState(false)
-    const [Abstain, setAbstain] = useState(_All)
 
     const handleCloseModal = () => setIsOpen(false)
-
-    useEffect(() => {
-        setAbstain(_All.difference(_For).difference(_Against))
-    }, [_For,_Against,_All])
 
     useEffect(() => {
         if (_isOpen) setIsOpen(_isOpen)
@@ -132,7 +127,7 @@ export const PostVotingModal = ({ _isOpen, _For, _Against, _All, UserId }) => {
                     <div className="postVote-abstain"><div>Wstrzymano: </div>
                     {(() => {
                         var torender = []
-                        for (const i of Abstain) {
+                        for (const i of _Abstain) {
                             torender.push(<div><User _Id={i}/></div>)
                         }
                         return torender
