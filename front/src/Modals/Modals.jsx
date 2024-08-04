@@ -34,7 +34,6 @@ export const RoleModal = ({ _isOpen, _UserRole, _Roles, _Meet = false, UserId })
                         if (_UserRole == "F") {
                             torender.push(<div>H:{_Roles.H} <Role _Role={"H"} _Id={0} /></div>)
                         }
-                        console.log(torender)
                         return <div className="role-other">{torender}</div>
                     })() : ""}
                 </div>
@@ -104,7 +103,7 @@ export const PostVotingModal = ({ _isOpen, _For, _Against, _Abstain, UserId }) =
 
     return (
         <div>
-            <ReactModal isOpen={isOpen} className="Modal" overlayClassName="Overlay">
+            <ReactModal isOpen={isOpen} onRequestClose={handleCloseModal} className="Modal" overlayClassName="Overlay">
                 <div className="Content">
                     <div className="postVote-for"><div>Za: </div>
                     {(() => {

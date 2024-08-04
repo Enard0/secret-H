@@ -32,9 +32,9 @@ const Fields = {"L":{ "Lempty": Lempty, "Lwin": Lwin },
 
 const Cards = {"L":Lcard, "F":Fcard, "C":Ccard,}
 
-const Field = ({_i, _Type, _Name, _Card=false}) => {
+const Field = ({_Type, _Name, _Card=false}) => {
     return (
-        <div key={_i} className="Board-element">
+        <div className="Board-element">
                         <img className="Board-image" src={Fields[_Type][_Name]} />
                         {_Card? <img className="Board-card" src={Cards[_Type]} /> : ''}
                     </div>

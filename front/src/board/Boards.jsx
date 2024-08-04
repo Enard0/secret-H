@@ -52,7 +52,7 @@ const BoardF = ({ _Board, _Count }) => {
                 const toRender = [];
 
                 for (let i = 0; i < _Board.length; i++) {
-                    toRender.push(<Field _i={i} _Type="F" _Name={_Board[i]} _Card={_Count > i}/>)
+                    toRender.push(<Field key={i} _Type="F" _Name={_Board[i]} _Card={_Count > i}/>)
                     /*<div key={i} className="Board-element">
                         <img className="Board-image" src={Ffields[Board[i]]} />
                         {Count > i ? <img className="Board-card" src={Fcard} /> : ''}
@@ -73,7 +73,7 @@ const BoardL = ({ _Board, _Count }) => {
                 const toRender = [];
 
                 for (let i = 0; i < _Board.length; i++) {
-                    toRender.push(<Field _i={i} _Type="L" _Name={_Board[i]} _Card={_Count > i}/>)
+                    toRender.push(<Field key={i} _Type="L" _Name={_Board[i]} _Card={_Count > i}/>)
                     /*toRender.push(<div key={i} className="Board-element">
                         <img className="Board-image" src={Lfields[Board[i]]} />
                         {Count > i ? <img className="Board-card" src={Lcard} /> : ''}
@@ -94,7 +94,7 @@ const BoardC = ({ _Board, _Count }) => {
                 const toRender = [];
 
                 for (let i = 0; i < _Board.length; i++) {
-                    toRender.push(<Field _i={i} _Type="C" _Name={_Board[i]} _Card={_Count > i}/>)
+                    toRender.push(<Field key={i} _Type="C" _Name={_Board[i]} _Card={_Count > i}/>)
                     /*toRender.push(<div key={i} className="Board-element">
                         <img className="Board-image" src={Cfields[Board[i]]} />
                         {Count > i ? <img className="Board-card" src={Ccard} /> : ''}

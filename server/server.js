@@ -1,9 +1,9 @@
 import express, { json } from "express";
 import { config } from "dotenv";
-const fetch = import("node-fetch")
+import fetch from "node-fetch";
 import cors from 'cors';
-
-config({ path: "../.env" });
+import dotenv from "dotenv";
+dotenv.config({ path: "../.env" });
 
 const app = express();
 const port = 3001;
@@ -11,9 +11,11 @@ var curid = 0;
 
 // Allow express to parse JSON bodies
 app.use(json());
-app.use(cors())
+app.use(cors());
+app.use(express.json());
 
 var GamesData = new Object()
+var Players = new Object()
 var EventsToSend = new Object()
 
 function shuffle(array) {
@@ -33,33 +35,61 @@ function shuffle(array) {
 }
 
 // Used like so
-app.post("/api/token", async (req, res) => {
+app.post("/token", async (req, res) => {
 
   // Exchange the code for an access_token
+
+  const bdy = new URLSearchParams({
+    client_id: process.env.VITE_DISCORD_CLIENT_ID,
+    client_secret: process.env.DISCORD_CLIENT_SECRET,
+    grant_type: "authorization_code",
+    redirect_uri: "http://localhost",
+    code: req.body.code,
+  }).toString()
+
   const response = await fetch(`https://discord.com/api/oauth2/token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: new URLSearchParams({
-      client_id: process.env.VITE_DISCORD_CLIENT_ID,
-      client_secret: process.env.DISCORD_CLIENT_SECRET,
-      grant_type: "authorization_code",
-      code: req.body.code,
-    }),
+    body: bdy,
   });
 
   // Retrieve the access_token from the response
   const { access_token } = await response.json();
-
+  //console.log(access_token,response)
   // Return the access_token to our client as { access_token: "..."}
-  res.send({ access_token });
+  res.json({ "at": access_token });
 });
 
 app.get("/qj", (req, res) => {
   curid++;
   res.json({ "Id": curid / 2 });
 });
+
+app.post("/playerData/:UserId", (req, res) => {
+  const UserId = req.params.UserId;
+
+  if (UserId in Players) return res.sendStatus(200);
+
+  const UserName = req.body.username;
+  const Avatar = req.body.avatar;
+
+  Players[UserId] = { "avatar": Avatar, "userName": UserName };
+})
+
+app.get("/playerData/:UserId", (req, res) => {
+  const UserId = req.params.UserId;
+  if (!(UserId in Players)) {
+    res.statusMessage = 'No Player';
+    res.status(405).end();
+  }
+  res.json(Players[UserId]);
+})
+
+app.get("/playerDataFull", (req, res) => {
+  res.json(Players);
+})
 
 app.get("/event/:SessionId/:UserId/:EventId", (req, res) => {
   const SessionId = req.params.SessionId
@@ -434,7 +464,7 @@ function endVoting(SessionId) {
       }, 'Event': 'Voting Passed', 'For': 'All'
     })
 
-    EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'Pass Laws', 'For': [GamesData[SessionId]['President']] })
+    EventsToSend[SessionId].push({ 'Data': { 'Cards': GamesData[SessionId]['Cards'].slice(0, 3) }, 'Event': 'Pass Laws', 'For': [GamesData[SessionId]['President']] })
     console.log('succes')
     return
   }

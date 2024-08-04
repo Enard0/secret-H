@@ -3,7 +3,7 @@ import ReactModal from "react-modal";
 import Role from "../roles/Role.jsx"
 import './Modal.css'
 import { Card } from "./CardsModal.jsx";
-import PlayerList from "../players/PlayerList.jsx";
+import User from "../players/Player.jsx";
 
 
 export const WinModal = ({ _isOpen, _Type }) => {
@@ -55,7 +55,7 @@ export const CheckCardsModal = ({ _isOpen, SessionId, UserId }) => {
             fetch(`/api/cards/${SessionId}/${UserId}`).then(response => {
                 if (response.status == 200) {
                     response.json().then(json => {
-                        setNextCards(json.players)
+                        setNextCards(json)
                         setIsOpen(_isOpen)
                     })
                 }
@@ -68,6 +68,7 @@ export const CheckCardsModal = ({ _isOpen, SessionId, UserId }) => {
         <div>
             <ReactModal isOpen={isOpen} className="Modal" overlayClassName="Overlay">
                 <div className="Content">
+                    Next cards:
                     <div className="Cards">
                         <Card _Card={nextCards[0]} func={null} />
                         <Card _Card={nextCards[1]} func={null} />
