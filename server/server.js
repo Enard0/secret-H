@@ -43,7 +43,7 @@ app.post("/token", async (req, res) => {
     client_id: process.env.VITE_DISCORD_CLIENT_ID,
     client_secret: process.env.DISCORD_CLIENT_SECRET,
     grant_type: "authorization_code",
-    redirect_uri: "http://localhost",
+    redirect_uri: process.env.VITE_REDIRECT_URL,
     code: req.body.code,
   }).toString()
 

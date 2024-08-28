@@ -70,7 +70,10 @@ function Main() {
     })
   }
 
-  const log = () => { window.open("https://discord.com/oauth2/authorize?client_id=804715280361586748&response_type=code&redirect_uri=http%3A%2F%2Flocalhost&scope=identify", "_self") }
+  const ClientID = import.meta.env.VITE_DISCORD_CLIENT_ID;
+  const RedirectURL = encodeURIComponent(import.meta.env.VITE_REDIRECT_URL);
+
+  const log = () => { window.open(`https://discord.com/oauth2/authorize?client_id=${ClientID}&response_type=code&redirect_uri=${RedirectURL}&scope=identify`, "_self") }
   if (!IsSubmitted)
     return (
       <div>
