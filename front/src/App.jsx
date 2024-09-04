@@ -55,6 +55,7 @@ const App = ({ SessionId, UserId }) => {
       if (response.status == 200) {
         response.json().then(json => {
           setGov(json)
+          console.log(json)
         })
       }
     })
@@ -65,7 +66,6 @@ const App = ({ SessionId, UserId }) => {
       if (response.status == 200) {
         response.json().then(json => {
           setSpectators(JSON.parse(json.spectators));
-          JSON.parse(json.spectators)
         })
       }
     })
@@ -128,6 +128,7 @@ const App = ({ SessionId, UserId }) => {
         getSpectators()
         return;
 
+      case 'Stopped':
       case 'Started':
         getRoles()
         getBoards()
@@ -141,10 +142,9 @@ const App = ({ SessionId, UserId }) => {
           setAction(dat.field)
         //cardAction(dat.field)
         getBoards()
-        getGov()
         getStatus()
         break;
-
+      
       case 'Voting Passed':
       case 'Voting Failed':
         setVotingData(JSON.parse(event.data))
@@ -153,17 +153,23 @@ const App = ({ SessionId, UserId }) => {
         break;
 
       case 'Voting':
-        setData(JSON.parse(event.data))
-        getStatus()
-        break;
-
       case 'Pass Laws':
-        setData(JSON.parse(event.data))
-        getStatus()
-
       case 'Win':
         setData(JSON.parse(event.data))
         getStatus();
+        setAction("")
+        break;
+      
+
+      case 'President Checked':
+        getStatus()
+        setData(JSON.parse(event.data))
+      case 'New President':
+      case "Became President":
+        getGov()
+        setAction("")
+        break;
+
     }
     setEvent(event.event)
   }
@@ -171,7 +177,7 @@ const App = ({ SessionId, UserId }) => {
   const getPlayerData = () => {
     fetch(`/api/playerDataFull`).then(response => {
       if (response.status == 200) {
-        response.json().then(json => { setPlayerData(json);console.log(json) })
+        response.json().then(json => { setPlayerData(json)})
       }
     })
   }
@@ -182,6 +188,7 @@ const App = ({ SessionId, UserId }) => {
     getStatus()
     getRoles()
     getPlayerData()
+    getGov()
 
 
     // opening a connection to the server to begin receiving events from it
@@ -195,6 +202,7 @@ const App = ({ SessionId, UserId }) => {
       })
 
     }, 200)
+
     // attaching a handler to receive message events
     //eventSource.onmessage = (event) => {
     //  EventHandler(event)   
@@ -207,7 +215,7 @@ const App = ({ SessionId, UserId }) => {
   useEffect(() => {
     if (UserId == Gov["president"]) {
       if (State == 'Selecting Chancellor') { setFunc("selectChancellor"); return }
-      if (Action == 'Selecting Chancellor' || Action == 'Fveto' || Action == 'Fpresident' || Action == 'FcheckRole') { setFunc("selectPerson"); return }
+      if (Action == 'Selecting Chancellor' || Action == 'Fkill' || Action == 'Fveto' || Action == 'Fpresident' || Action == 'FcheckRole') { setFunc("selectPerson"); return }
     }
     setFunc(null)
   }, [Gov, State, Action])
@@ -251,7 +259,7 @@ const App = ({ SessionId, UserId }) => {
   }
 
   const kill = () => {
-    fetch(`/api/chancellor/${SessionId}/${UserId}`, {
+    fetch(`/api/kill/${SessionId}/${UserId}`, {
       method: "POST",
       body: JSON.stringify({
         Killed: Chosen,
@@ -282,7 +290,7 @@ const App = ({ SessionId, UserId }) => {
       <p>State:{State}</p>
       <p>isP: {Players.includes(UserId.toString())}</p>
       <p>Data:{JSON.stringify(Data)}</p>
-      <PlayerList _PlayerData={PlayerData} getPlayerData={getPlayerData} _Players={Players} _Spectators={Spectators} _Roles={Roles.AllN} _Gov={Gov} _func={Func == "selectChancellor" ? selectChancellor : Func == "selectPerson" ? selectPerson : null} />
+      <PlayerList _PlayerData={PlayerData} _Players={Players} _Spectators={Spectators} _Roles={Roles.AllN} _Gov={Gov} _func={Func == "selectChancellor" ? selectChancellor : Func == "selectPerson" ? selectPerson : null} />
       <Lobby SessionId={SessionId} UserId={UserId} _CanJoin={State == "Waiting"} _Joined={Players.includes(UserId.toString())} _Playernr={Players.length} />
 
       {(Gov.president == UserId && Event == 'Became President') && <button className="CConfirm" disabled={Chosen == 0 ? true : false} onClick={chooseChancellor}>Confirm chancellor</button>}
@@ -292,18 +300,18 @@ const App = ({ SessionId, UserId }) => {
       {(Gov.president == UserId && Action == 'FcheckRole') && <button className="RConfirm" disabled={Chosen == 0 ? true : false} onClick={checkRole}>Confirm Role Check</button>}
       {State != "Waiting" && State != "None" ? <Boards _Boards={BoardData} _L={Lcount} _F={Fcount} _C={Ccount} /> : ''}
       {Players.includes(UserId.toString()) && (<div>
-        <VotingModal _isOpen={Event == "Voting"} _Candidate={"Candidate" in Data ? Data["Candidate"] : 0} UserId={UserId} SessionId={SessionId} />
+        <VotingModal _isOpen={Event == "Voting"} _Candidate={"Candidate" in Data ? Data["Candidate"] : 0} UserId={UserId} SessionId={SessionId} _PlayerData={PlayerData}/>
 
-        <CardsModal _isOpen={Event == "Pass Laws"} _Cards={Data['Cards']} _Veto={Data['Veto']} _Chan={State == 'President Cards' ? Gov.chancellor : 0} SessionId={SessionId} UserId={UserId} />
+        <CardsModal _isOpen={Event == "Pass Laws"} _Cards={Data['Cards']} _Veto={Data['Veto']} _Chan={State == 'President Cards' ? Gov.chancellor : 0} SessionId={SessionId} UserId={UserId} _PlayerData={PlayerData}/>
 
-        <PostVotingModal _isOpen={Event == 'Voting Failed' || Event == 'Voting Passed'} _For={VotingData['For']} _Against={VotingData['Against']} _Abstain={VotingData['Abstain']} UserId={UserId} />
-        <RoleModal _isOpen={Event == 'Started'} _UserRole={Roles.Player} _Roles={Roles.All} UserId={UserId} />
+        <PostVotingModal _isOpen={Event == 'Voting Failed' || Event == 'Voting Passed'} _For={VotingData['For']} _Against={VotingData['Against']} _Abstain={VotingData['Abstain']} UserId={UserId} _PlayerData={PlayerData}/>
+        <RoleModal _isOpen={Event == 'Started'} _UserRole={Roles.Player} _Roles={Roles.All} UserId={UserId} _PlayerData={PlayerData}/>
 
         <CheckCardsModal _isOpen={UserId == Gov["president"] && Action == "FcheckCards"} SessionId={SessionId} UserId={UserId} />
-        <CheckRoleModal _isOpen={Event == 'President Checked'} _President={Data['President']} _Choosen={Data['Checked']} _Role={'Role' in Data ? Data['Role'] : null} UserId={UserId} />
+        <CheckRoleModal _isOpen={Event == 'President Checked'} _President={Data['President']} _Choosen={Data['Checked']} _Role={'Role' in Data ? Data['Role'] : null} _PlayerData={PlayerData}/>
 
-        <VetoModal _isOpen={Event == "Veto Ask"} />
-        <WinModal _isOpen={Event == 'Win'} _Type={Data["party"]} />
+        <VetoModal _isOpen={Event == "Veto Ask"} _PlayerData={PlayerData}/>
+        <WinModal _isOpen={Event == 'Win'} _Type={Data["party"]} _PlayerData={PlayerData}/>
       </div>
       )}
     </div>

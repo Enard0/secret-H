@@ -27,7 +27,7 @@
   background-color: rgba(0, 0, 0, 0.75);
 }
 
-.role-self, .role-other{
+.role-self, .role-other, .party-card{
   align-items: center;
   display: flex;
   flex-wrap: wrap;

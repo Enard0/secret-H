@@ -56,10 +56,10 @@ app.post("/token", async (req, res) => {
   });
 
   // Retrieve the access_token from the response
-  const { access_token } = await response.json();
+  const { access_token, expires_in} = await response.json();
   //console.log(access_token,response)
   // Return the access_token to our client as { access_token: "..."}
-  res.json({ "at": access_token });
+  res.json({ "at": access_token, "exp":expires_in });
 });
 
 app.get("/qj", (req, res) => {
@@ -120,6 +120,14 @@ app.get("/event/:SessionId/:UserId/:EventId", (req, res) => {
       EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Spectator Left', 'For': 'All' })
     }
   }
+
+  const badping = () => {
+    console.log(`Ping ${SessionId}:${UserId}`)
+    if (SessionId in GamesData && 'Spectators' in GamesData[SessionId] && UserId in GamesData[SessionId]['Spectators']) {
+      EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Bad Connection', 'For': 'All' })
+    }
+  }
+
   if (UserId in GamesData[SessionId]['Spectators']) {
     clearTimeout(GamesData[SessionId]['Spectators'][UserId])
     GamesData[SessionId]['Spectators'][UserId] = setTimeout(pingdsc, 2000)
@@ -148,7 +156,7 @@ app.get("/event/:SessionId/:UserId/:EventId", (req, res) => {
     res.json({ "next": EventId, "event": "ping" })
     return;
   }
-  if (EventsToSend[SessionId][EventId]['For'] == 'All' || ('Rev' in EventsToSend[SessionId][EventId] && !EventsToSend[SessionId][EventId]['For'].includes(UserId)) || EventsToSend[SessionId][EventId]['For'].includes(UserId)) {
+  if (EventsToSend[SessionId][EventId]['For'] == 'All' || ('Rev' in EventsToSend[SessionId][EventId] && !EventsToSend[SessionId][EventId]['For'].includes(UserId)) || (!('Rev' in EventsToSend[SessionId][EventId]) && EventsToSend[SessionId][EventId]['For'].includes(UserId))) {
     res.json({ "next": EventId + 1, "event": EventsToSend[SessionId][EventId]['Event'], "data": JSON.stringify(EventsToSend[SessionId][EventId]['Data']) })
   } else {
     res.json({ "next": EventId + 1, "event": "ping" })
@@ -465,7 +473,7 @@ function endVoting(SessionId) {
     })
 
     EventsToSend[SessionId].push({ 'Data': { 'Cards': GamesData[SessionId]['Cards'].slice(0, 3) }, 'Event': 'Pass Laws', 'For': [GamesData[SessionId]['President']] })
-    console.log('succes')
+    //console.log('succes')
     return
   }
   votingFailed(SessionId)
@@ -713,7 +721,7 @@ function passLaw(SessionId, Law) {
       case "Cwin":
         EventsToSend[SessionId].push({ 'Data': { 'party': Law, 'reason': act }, 'Event': 'Win', 'For': 'All' })
         GamesData[SessionId]['Status'] = 'Waiting'
-        res.sendStatus(200)
+        //res.sendStatus(200)
         return;
 
 
@@ -724,19 +732,19 @@ function passLaw(SessionId, Law) {
       case "Fkill":
         GamesData[SessionId]['Status'] = 'Kill'
         EventsToSend[SessionId].push({ 'Data': { 'law': Law, 'field': act }, 'Event': 'Law Passed', 'For': 'All' })
-        res.sendStatus(200)
+        //res.sendStatus(200)
         return;
 
       case "Fpresident":
         GamesData[SessionId]['Status'] = 'Selecting President'
         EventsToSend[SessionId].push({ 'Data': { 'law': Law, 'field': act }, 'Event': 'Law Passed', 'For': 'All' })
-        res.sendStatus(200)
+        //res.sendStatus(200)
         return;
 
       case "FcheckRole":
         GamesData[SessionId]['Status'] = 'Checking Role'
         EventsToSend[SessionId].push({ 'Data': { 'law': Law, 'field': act }, 'Event': 'Law Passed', 'For': 'All' })
-        res.sendStatus(200)
+        //res.sendStatus(200)
         return;
 
 
@@ -751,22 +759,24 @@ function passLaw(SessionId, Law) {
   }
   EventsToSend[SessionId].push({ 'Data': { 'law': Law, 'field': act }, 'Event': 'Law Passed', 'For': 'All' })
   cyclePresident(SessionId)
-  res.sendStatus(200)
+  //res.sendStatus(200)
 }
 
 const cyclePresident = (SessionId) => {
+  //console.log("Cycle")
   GamesData[SessionId]['PresidentId']++;
   if (GamesData[SessionId]["PresidentId"] >= GamesData[SessionId]['Players'].length) GamesData[SessionId]['PresidentId'] = 0
   GamesData[SessionId]['President'] = GamesData[SessionId]['Players'][GamesData[SessionId]['PresidentId']]
   GamesData[SessionId]['Status'] = 'Selecting Chancellor'
-
+  EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'New President', 'For': [GamesData[SessionId]['President']], 'Rev': true})
   EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'Became President', 'For': [GamesData[SessionId]['President']] })
+  //console.log("Cycle2")
 }
 
-app.post("/checkRole", (req, res) => {
+app.post("/checkRole/:SessionId/:UserId", (req, res) => {
   const SessionId = req.params.SessionId
   const UserId = req.params.UserId
-  const Checked = req.params.Checked
+  const Checked = req.body.Checked
 
   if (GamesData[SessionId]['Status'] != 'Checking Role') {
     res.statusMessage = "Not This State";
@@ -818,6 +828,7 @@ app.post("/choosePresident/:SessionId/:UserId", (req, res) => {
   GamesData[SessionId]['President'] = NewP
   GamesData[SessionId]['Status'] = 'Selecting Chancellor'
 
+  EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'New President', 'For': [GamesData[SessionId]['President']], 'Rev': true})
   EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'Became President', 'For': [GamesData[SessionId]['President']] })
   res.sendStatus(200)
 });
@@ -847,7 +858,7 @@ app.post("/kill/:SessionId/:UserId", (req, res) => {
 
   if (GamesData[SessionId]['Roles'][Killed] == 'H') {
     EventsToSend[SessionId].push({ 'Data': { 'party': "!F", 'reason': "Hitler" }, 'Event': 'Win', 'For': 'All' })
-    GamesData[SessionId]['Status'] = 'Waiting'
+    end(SessionId)
     res.sendStatus(200)
     return;
   }
@@ -860,9 +871,29 @@ app.post("/kill/:SessionId/:UserId", (req, res) => {
   res.sendStatus(200)
 });
 
+const end = (SessionId) => {
+  GamesData[SessionId]['Roles'] = {}
+  GamesData[SessionId]['RevRoles'] = {}
+  GamesData[SessionId]['Status'] = 'Waiting'
+  GamesData[SessionId]['President'] = null
+  GamesData[SessionId]['PresidentId'] = null
+  GamesData[SessionId]['Chancellor'] = null
+  GamesData[SessionId]['Candidate'] = null
+  GamesData[SessionId]['LastP'] = null
+  GamesData[SessionId]['LastC'] = null
+  GamesData[SessionId]['CountL'] = 0
+  GamesData[SessionId]['CountC'] = 0
+  GamesData[SessionId]['CountF'] = 0
+  GamesData[SessionId]['Tracker'] = 0
+  GamesData[SessionId]['Veto'] = false
+  GamesData[SessionId]['Dead'] = []
+}
+
+
 app.post("/stop/:SessionId", (req, res) => {
   const SessionId = req.params.SessionId
-  GamesData[SessionId]['Status'] = 'Waiting'
+  end(SessionId)
+  EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'Stopped', 'For': 'All' })
   res.sendStatus(200)
 });
 

@@ -8,8 +8,8 @@ function Main() {
   const code = queryParameters.get("code")
 
   const [ButtonDisabled, setButtonDisabled] = useState(true);
-  const [SessionId, setSessionId] = useState(1);
-  const [UserId, setUserId] = useState(1);
+  const SessionId = useRef(0);;
+  const UserId = useRef(0);
   const TOKEN = useRef(null);
 
   const [IsSubmitted, setIsSubmitted] = useState(false);
@@ -18,28 +18,59 @@ function Main() {
     setIsSubmitted(true)
   }
 
+  const setCookie = (token, exp) => {
+    if (!token) return
+    const expirationDate = Date.now() + exp * 1000;
+    document.cookie = `TOKEN=${token}; expires=${expirationDate}; SameSite=Strict; path=/`;
+  };
+
+  const getCookie = (name) => {
+    const cookies = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith(`${name}=`));
+
+    return cookies ? cookies.split("=")[1] : null;
+  };
+
+  const getToken = (code) => {
+    fetch('/api/token', {
+      method: "POST",
+      body: JSON.stringify({
+        code: code,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8"
+      }
+    }).then(response => {
+      if (response.status == 200) {
+        response.json().then(json => {
+          console.log("aaaa")
+          if (json.at) {
+            setCookie(json.at, json.exp);
+
+            TOKEN.current = json.at;
+            GetPlayerData();
+          }
+        });
+      }
+    })
+  }
+
   useEffect(() => {
     /*fetch(`/api/qj`).then(response => {
       if (response.status == 200) {
         response.json().then(json => {setUserId(json.Id)})
       }
     })*/
-    if (code != null) {
+    let Token = getCookie("TOKEN")
+    if (Token) {
+      TOKEN.current = Token
+      GetPlayerData();
+    }
+    else if (code != null) {
       queryParameters.delete("code")
       history.replaceState(null, null, queryParameters.toString())
-      fetch('/api/token', {
-        method: "POST",
-        body: JSON.stringify({
-          code: code,
-        }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8"
-        }
-      }).then(response => {
-        if (response.status == 200) {
-          response.json().then(json => { console.log(json); TOKEN.current = json.at; GetPlayerData(); });
-        }
-      })
+      getToken(code)
     }
   }, [])
 
@@ -52,7 +83,7 @@ function Main() {
       console.log(response);
       if (response.status == 200) {
         response.json().then(json => {
-          setUserId(json.id)
+          UserId.current =json.id
           const username = json.global_name
           const avatar = json.avatar
           fetch(`/api/playerData/${json.id}`, {
@@ -65,7 +96,13 @@ function Main() {
               "Content-type": "application/json; charset=UTF-8"
             }
           });
-        }).then(setButtonDisabled(false));
+        }).then(setTimeout(onSubmit,100)
+          //setButtonDisabled(false)
+        );
+      } else if (code != null) {
+        queryParameters.delete("code")
+        history.replaceState(null, null, queryParameters.toString())
+        getToken(code)
       }
     })
   }
@@ -78,13 +115,13 @@ function Main() {
     return (
       <div>
         Code: {code}
-        {ButtonDisabled ? <button onClick={log}>Login</button>: <button onClick={log} disabled>Login</button>}
-        <form onSubmit={onSubmit}>
+        {ButtonDisabled ? <button onClick={log}>Login</button> : <button onClick={log} disabled>Login</button>}
+        <form onSubmit={onSubmit} id='Form'>
           <label>SessionId:
             <input
               type="number"
               value={SessionId}
-              onChange={(e) => setSessionId(e.target.value)}
+              onChange={(e) => SessionId.current =e.target.value}
               disabled
             />
           </label>
@@ -92,15 +129,16 @@ function Main() {
             <input
               type="number"
               value={UserId}
-              onChange={(e) => setUserId(e.target.value)}
+              onChange={(e) => UserId.current =e.target.value}
               disabled
             />
           </label>
-          {ButtonDisabled ? <input type="submit" disabled /> : <input type="submit" />}
+          {//ButtonDisabled ? <input type="submit" disabled /> : <input type="submit" />
+          }
         </form>
       </div>
     )
-  return (<App SessionId={SessionId} UserId={UserId} />)
+  return (<App SessionId={SessionId.current} UserId={UserId.current} />)
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

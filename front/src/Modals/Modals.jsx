@@ -47,7 +47,7 @@ export const RoleModal = ({ _isOpen, _UserRole, _Roles, _Meet = false, UserId })
     );
 }
 
-export const VotingModal = ({ _isOpen, _Candidate = 0, SessionId, UserId }) => {
+export const VotingModal = ({ _isOpen, _Candidate = 0, SessionId, UserId, _PlayerData }) => {
     const [isOpen, setIsOpen] = useState(false)
 
     const handleCloseModal = () => setIsOpen(false)
@@ -72,7 +72,7 @@ export const VotingModal = ({ _isOpen, _Candidate = 0, SessionId, UserId }) => {
         <div>
             <ReactModal isOpen={isOpen} className="Modal" overlayClassName="Overlay">
                 <div className="Content">
-                    <div className="Candiate"><div>Kandydat: <User _Id={_Candidate} /></div></div>
+                    <div className="Candiate"><div>Candidate: <User UserId={_Candidate} _Data={_PlayerData}/></div></div>
                     <div className="VotingButtons">
                         <div className="Y" onClick={() => { handleCloseModal(); Vote(1) }}>
                             <span className="material-symbols-outlined">
@@ -91,7 +91,7 @@ export const VotingModal = ({ _isOpen, _Candidate = 0, SessionId, UserId }) => {
     );
 }
 
-export const PostVotingModal = ({ _isOpen, _For, _Against, _Abstain, UserId }) => {
+export const PostVotingModal = ({ _isOpen, _For, _Against, _Abstain, UserId, _PlayerData }) => {
     const [isOpen, setIsOpen] = useState(false)
 
     const handleCloseModal = () => setIsOpen(false)
@@ -109,7 +109,7 @@ export const PostVotingModal = ({ _isOpen, _For, _Against, _Abstain, UserId }) =
                     {(() => {
                         var torender = []
                         for (const i of _For) {
-                            torender.push(<div><User _Id={i}/></div>)
+                            torender.push(<div><User UserId={i} _Data={_PlayerData}/></div>)
                         }
                         return torender
                     })()}
@@ -118,7 +118,7 @@ export const PostVotingModal = ({ _isOpen, _For, _Against, _Abstain, UserId }) =
                     {(() => {
                         var torender = []
                         for (const i of _Against) {
-                            torender.push(<div><User _Id={i}/></div>)
+                            torender.push(<div><User UserId={i} _Data={_PlayerData}/></div>)
                         }
                         return torender
                     })()}
@@ -127,7 +127,7 @@ export const PostVotingModal = ({ _isOpen, _For, _Against, _Abstain, UserId }) =
                     {(() => {
                         var torender = []
                         for (const i of _Abstain) {
-                            torender.push(<div><User _Id={i}/></div>)
+                            torender.push(<div><User UserId={i} _Data={_PlayerData}/></div>)
                         }
                         return torender
                     })()}

@@ -16,7 +16,7 @@ export const Card = ({ _Card, func }) => {
         </div>
     )
 }
-export const CardsModal = ({ _isOpen, _Cards = [], _Chan = 0, _Veto= false, SessionId, UserId }) => {
+export const CardsModal = ({ _isOpen, _Cards = [], _Chan = 0, _Veto= false, SessionId, UserId, _PlayerData }) => {
     const [isOpen, setIsOpen] = useState(false)
 
     const handleCloseModal = () => setIsOpen(false)
@@ -35,7 +35,7 @@ export const CardsModal = ({ _isOpen, _Cards = [], _Chan = 0, _Veto= false, Sess
             headers: {
                 "Content-type": "application/json; charset=UTF-8"
             }
-        }).then(response => {console.log(response)})
+        })
     };
 
     const Veto = () =>{
@@ -55,7 +55,7 @@ export const CardsModal = ({ _isOpen, _Cards = [], _Chan = 0, _Veto= false, Sess
                     <div className="Content">
                         <div className="Action">
                             <div>Discard</div>
-                            <div>P: <User _Id={_Chan} /></div>
+                            <div>P: <User UserId={_Chan} _Data={_PlayerData}/></div>
                         </div>
                         <div className="Cards">
                             <Card _Card={_Cards[0]} func={Reject}/>

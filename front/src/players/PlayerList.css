@@ -7,34 +7,56 @@
     font-weight: 300;
 }
 
-.Player-list>.player.H, .Player-list>.player.F{
+/*.Player-list>.player.H, .Player-list>.player.F{
     color: rgb(83, 19, 19);
 }
 
 .Player-list>.player.C{
     color: #f00;
-}
+}*/
 
-.player.president, .player.chancellor{
+/*.player.president, .player.chancellor{
     text-decoration: underline;
 }
 
 .player.lastC, .player.lastP{
     text-decoration:line-through;
+}*/
+
+
+
+.player.lastC p::after{
+    font-weight: lighter;
+    font-style: italic;
+    content: " ex\00a0chancellor";
+    color: #77f;
 }
 
-.player.president, .player.lastP{
-    text-decoration-color: #0f0;
+.player.lastP p::after{
+    font-weight: normal;
+    font-style: italic;
+    content: " ex\00a0president";
+    color: #060;
 }
 
-.player.chancellor, .player.chancellor{
-    text-decoration-color: #00f;
+.player.chancellor p::after{
+    font-weight: bold;
+    font-style: normal;
+    content: " chancellor";
+    color: #aaf;
+}
+
+.player.president p::after{
+    font-weight: bold;
+    font-style: normal;
+    content: " president";
+    color: #afa;
 }
 
 .Player-list{
     overflow-y: scroll;
     overflow-x: hidden;
     height: 300px;
-    width: 340px;
+    width: 400px;
     background-color: #222;
 }

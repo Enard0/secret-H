@@ -35,7 +35,7 @@ const Roles = {"L":[L1, L2, L3, L4, L5, L6],
                 "C":[C1, C2, C3, C4,],
                 "H":[H]}
 
-const Party = {"L":L,"F":L,"C":C,"H":H}
+const Party = {"L":L,"F":L,"C":C,"H":F}
 
 const Role = ({ _Role="None", _Id=0, _Type='R' }) => {
     

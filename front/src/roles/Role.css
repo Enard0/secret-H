@@ -1,4 +1,11 @@
-.role-card > img{
+.role-card > img, .party-card > img{
     width: 100px;
     display: inline-block;
 }
+
+/*.Role-checkee > .user-item, .Role-checker.user-item{
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}*/

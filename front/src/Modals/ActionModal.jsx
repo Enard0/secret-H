@@ -86,7 +86,7 @@ export const CheckCardsModal = ({ _isOpen, SessionId, UserId }) => {
 }
 
 
-export const CheckRoleModal = ({ _isOpen, _President, _Choosen, _Role=null, }) => {
+export const CheckRoleModal = ({ _isOpen, _President, _Choosen, _Role=null, _PlayerData}) => {
     const [isOpen, setIsOpen] = useState(false)
 
     const handleCloseModal = () => setIsOpen(false)
@@ -99,12 +99,14 @@ export const CheckRoleModal = ({ _isOpen, _President, _Choosen, _Role=null, }) =
         <div>
             <ReactModal isOpen={isOpen} className="Modal" overlayClassName="Overlay">
                 <div className="Content">
-                    <div className="Checked">
-                        <User _Id={_Choosen}/>
+                    <div className="Role-checkee">
+                        Checkee:
+                        <User UserId={_Choosen} _Data={_PlayerData}/>
                         {_Role != null && <Role _Role={_Role} _Type="P" />}
                     </div>
-                    <div className="President">
-                        <User _Id={_President}/>
+                    <div className="Role-checker">
+                        Checker:
+                        <User UserId={_President} _Data={_PlayerData}/>
                     </div>
                 </div>
                 <button className="close" onClick={handleCloseModal}>
@@ -117,7 +119,7 @@ export const CheckRoleModal = ({ _isOpen, _President, _Choosen, _Role=null, }) =
     );
 }
 
-export const VetoModal = ({ _isOpen, _Chancellor, SessionId, UserId }) => {
+export const VetoModal = ({ _isOpen, _Chancellor, SessionId, UserId, _PlayerData }) => {
     const [isOpen, setIsOpen] = useState(false)
 
     const handleCloseModal = () => setIsOpen(false)
@@ -142,7 +144,7 @@ export const VetoModal = ({ _isOpen, _Chancellor, SessionId, UserId }) => {
         <div>
             <ReactModal isOpen={isOpen} className="Modal" overlayClassName="Overlay">
                 <div className="Content">
-                    <div className="Candiate"><div>Chancellor: <User _Id={_Chancellor} /></div></div>
+                    <div className="Candiate"><div>Chancellor: <User UserId={_Chancellor} _Data={_PlayerData}/></div></div>
                     <div className="VotingButtons">
                         <div className="Y" onClick={() => { handleCloseModal(); Vote(1) }}>
                             <span className="material-symbols-outlined">
