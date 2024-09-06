@@ -7,6 +7,9 @@ dotenv.config({ path: "../.env" });
 
 const app = express();
 const port = 3001;
+
+const PING = 2000;
+const DSC = 20000;
 var curid = 0;
 
 // Allow express to parse JSON bodies
@@ -56,10 +59,10 @@ app.post("/token", async (req, res) => {
   });
 
   // Retrieve the access_token from the response
-  const { access_token, expires_in} = await response.json();
+  const { access_token, expires_in } = await response.json();
   //console.log(access_token,response)
   // Return the access_token to our client as { access_token: "..."}
-  res.json({ "at": access_token, "exp":expires_in });
+  res.json({ "at": access_token, "exp": expires_in });
 });
 
 app.get("/qj", (req, res) => {
@@ -129,13 +132,15 @@ app.get("/event/:SessionId/:UserId/:EventId", (req, res) => {
   }
 
   if (UserId in GamesData[SessionId]['Spectators']) {
-    clearTimeout(GamesData[SessionId]['Spectators'][UserId])
-    GamesData[SessionId]['Spectators'][UserId] = setTimeout(pingdsc, 2000)
+    clearTimeout(GamesData[SessionId]['Spectators'][UserId]["dsc"])
+    GamesData[SessionId]['Spectators'][UserId]["dsc"] = setTimeout(pingdsc, DSC)
+    //clearTimeout(GamesData[SessionId]['Spectators'][UserId]["ping"])
+    //GamesData[SessionId]['Spectators'][UserId]["ping"] = setTimeout(badping, PING)
   }
   else {
     res.json({ "event": "joined", "next": EventsToSend[SessionId].length })
     EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Spectator Joined', 'For': 'All' })
-    GamesData[SessionId]['Spectators'][UserId] = setTimeout(pingdsc, 2000)
+    GamesData[SessionId]['Spectators'][UserId] = { "dsc": setTimeout(pingdsc, DSC)}//, "ping": setTimeout(badping, PING) }
     return
   }
 
@@ -380,7 +385,7 @@ app.get("/players/:SessionId/", (req, res) => {
     res.status(405).end();
     return;
   }
-  res.json({ "players": GamesData[SessionId]['Players'], "dead": GamesData[SessionId]['Dead']})
+  res.json({ "players": GamesData[SessionId]['Players'], "dead": GamesData[SessionId]['Dead'] })
 });
 
 app.get("/gov/:SessionId/", (req, res) => {
@@ -768,7 +773,7 @@ const cyclePresident = (SessionId) => {
   if (GamesData[SessionId]["PresidentId"] >= GamesData[SessionId]['Players'].length) GamesData[SessionId]['PresidentId'] = 0
   GamesData[SessionId]['President'] = GamesData[SessionId]['Players'][GamesData[SessionId]['PresidentId']]
   GamesData[SessionId]['Status'] = 'Selecting Chancellor'
-  EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'New President', 'For': [GamesData[SessionId]['President']], 'Rev': true})
+  EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'New President', 'For': [GamesData[SessionId]['President']], 'Rev': true })
   EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'Became President', 'For': [GamesData[SessionId]['President']] })
   //console.log("Cycle2")
 }
@@ -828,7 +833,7 @@ app.post("/choosePresident/:SessionId/:UserId", (req, res) => {
   GamesData[SessionId]['President'] = NewP
   GamesData[SessionId]['Status'] = 'Selecting Chancellor'
 
-  EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'New President', 'For': [GamesData[SessionId]['President']], 'Rev': true})
+  EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'New President', 'For': [GamesData[SessionId]['President']], 'Rev': true })
   EventsToSend[SessionId].push({ 'Data': {}, 'Event': 'Became President', 'For': [GamesData[SessionId]['President']] })
   res.sendStatus(200)
 });
