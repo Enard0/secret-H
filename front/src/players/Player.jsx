@@ -3,8 +3,8 @@ import './Player.css'
 
 const Avatar = ({UserId,_Avatar}) => {
     if(_Avatar) 
-    return <img src={`https://cdn.discordapp.com/avatars/${UserId}/${_Avatar}?size=1024`} />
-    return <img src={`https://cdn.discordapp.com/embed/avatars/${(UserId >>> 22) % 6}.png`} />
+    return <div className="avatar"><img src={`https://cdn.discordapp.com/avatars/${UserId}/${_Avatar}?size=1024`} /><div className="extra"/></div>
+    return <div className="avatar"><img src={`https://cdn.discordapp.com/embed/avatars/${(UserId >>> 22) % 6}.png`} /><div className="extra"/></div>
 }
 
 const User = ({ _Classes="", _func=null, _line=false, _Data=null, UserId }) => {

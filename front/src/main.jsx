@@ -18,18 +18,35 @@ function Main() {
     setIsSubmitted(true)
   }
 
-  const setCookie = (token, exp) => {
-    if (!token) return
+  const deleteToken = () => {
+    localStorage.removeItem("TOKEN")
+    localStorage.removeItem("TOKEN-exp")
+    localStorage.removeItem("TOKEN-regen")
+  }
+
+  const saveToken = (token, exp, regen = null) => {
+    localStorage.setItem("TOKEN", token)
     const expirationDate = Date.now() + exp * 1000;
-    document.cookie = `TOKEN=${token}; expires=${expirationDate}; SameSite=Strict; path=/`;
+    localStorage.setItem("TOKEN-exp", expirationDate)
+    localStorage.setItem("TOKEN-regen", regen)
+
+    console.log(localStorage.getItem("TOKEN"))
   };
 
-  const getCookie = (name) => {
-    const cookies = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith(`${name}=`));
-
-    return cookies ? cookies.split("=")[1] : null;
+  const loadToken = () => {
+    const Token = localStorage.getItem("TOKEN");
+    console.log(Token)
+    if (!Token) return null;
+    console.log("A")
+    const TokenEXP = localStorage.getItem("TOKEN-exp");
+    let timo = TokenEXP - Date.now()
+    console.log("B", timo)
+    if (timo > 0) {
+      setTimeout(deleteToken, timo)
+      return Token
+    }
+    deleteToken()
+    return null
   };
 
   const getToken = (code) => {
@@ -44,9 +61,8 @@ function Main() {
     }).then(response => {
       if (response.status == 200) {
         response.json().then(json => {
-          console.log("aaaa")
           if (json.at) {
-            setCookie(json.at, json.exp);
+            saveToken(json.at, json.exp);
 
             TOKEN.current = json.at;
             GetPlayerData();
@@ -57,12 +73,7 @@ function Main() {
   }
 
   useEffect(() => {
-    /*fetch(`/api/qj`).then(response => {
-      if (response.status == 200) {
-        response.json().then(json => {setUserId(json.Id)})
-      }
-    })*/
-    let Token = getCookie("TOKEN")
+    let Token = loadToken()
     if (Token) {
       TOKEN.current = Token
       GetPlayerData();
@@ -83,7 +94,7 @@ function Main() {
       console.log(response);
       if (response.status == 200) {
         response.json().then(json => {
-          UserId.current =json.id
+          UserId.current = json.id
           const username = json.global_name
           const avatar = json.avatar
           fetch(`/api/playerData/${json.id}`, {
@@ -96,7 +107,7 @@ function Main() {
               "Content-type": "application/json; charset=UTF-8"
             }
           });
-        }).then(setTimeout(onSubmit,100)
+        }).then(setTimeout(onSubmit, 100)
           //setButtonDisabled(false)
         );
       } else if (code != null) {
@@ -121,7 +132,7 @@ function Main() {
             <input
               type="number"
               value={SessionId}
-              onChange={(e) => SessionId.current =e.target.value}
+              onChange={(e) => SessionId.current = e.target.value}
               disabled
             />
           </label>
@@ -129,7 +140,7 @@ function Main() {
             <input
               type="number"
               value={UserId}
-              onChange={(e) => UserId.current =e.target.value}
+              onChange={(e) => UserId.current = e.target.value}
               disabled
             />
           </label>
@@ -138,7 +149,10 @@ function Main() {
         </form>
       </div>
     )
-  return (<App SessionId={SessionId.current} UserId={UserId.current} />)
+  return (<div>
+    <button onClick={() => { deleteToken(); window.location.reload(); }}>Logout</button>
+    <App SessionId={SessionId.current} UserId={UserId.current} />
+  </div>)
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

@@ -31,6 +31,7 @@ const App = ({ SessionId, UserId }) => {
     });
   const [Lcount, setLcount] = useState(0);
   const [Fcount, setFcount] = useState(0);
+  const [Dead, setDead] = useState([]);
   const [Ccount, setCcount] = useState(0);
 
   const [Action, setAction] = useState('null');
@@ -45,6 +46,8 @@ const App = ({ SessionId, UserId }) => {
       if (response.status == 200) {
         response.json().then(json => {
           setPlayers(json.players)
+          setDead(json.dead)
+          console.log(json)
         })
       }
     })
@@ -117,6 +120,7 @@ const App = ({ SessionId, UserId }) => {
     }
     console.log(event)
     switch (event.event) {
+      case "Killed":
       case 'Player Left':
       case 'Player Joined':
         getPlayers()
@@ -288,9 +292,10 @@ const App = ({ SessionId, UserId }) => {
     <div className={"state " + State.replace(/\s+/g, '-') + (Players.includes(UserId.toString()) ? " isPlayer" : " isSpectator") + (Players.length <= 5 && " lessThan")}>
       <p>Event:{Event}</p>
       <p>State:{State}</p>
+      <p>Gov:{JSON.stringify(Gov)}</p>
       <p>isP: {Players.includes(UserId.toString())}</p>
       <p>Data:{JSON.stringify(Data)}</p>
-      <PlayerList _PlayerData={PlayerData} _Players={Players} _Spectators={Spectators} _Roles={Roles.AllN} _Gov={Gov} _func={Func == "selectChancellor" ? selectChancellor : Func == "selectPerson" ? selectPerson : null} />
+      <PlayerList _PlayerData={PlayerData} _Players={Players} _Spectators={Spectators} _Roles={Roles.AllN} _Gov={Gov} _func={Func == "selectChancellor" ? selectChancellor : Func == "selectPerson" ? selectPerson : null} _Dead={Dead}/>
       <Lobby SessionId={SessionId} UserId={UserId} _CanJoin={State == "Waiting"} _Joined={Players.includes(UserId.toString())} _Playernr={Players.length} />
 
       {(Gov.president == UserId && Event == 'Became President') && <button className="CConfirm" disabled={Chosen == 0 ? true : false} onClick={chooseChancellor}>Confirm chancellor</button>}

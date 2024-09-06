@@ -52,6 +52,58 @@
     content: " president";
     color: #afa;
 }
+.dead .avatar img{
+    filter: grayscale(100%);
+}
+.dead .extra::after {
+    font-family: 'Material Symbols Outlined';
+    font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 200,
+    'opsz' 24;
+    
+    font-weight: normal;
+    font-style: normal;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    margin: 2px;
+    
+    vertical-align: middle;
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    font-size: 20px;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+  
+    -moz-font-feature-settings: 'liga';
+    -moz-osx-font-smoothing: grayscale;
+  
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+  
+    content: "Skull";
+    color: #fff;
+    background-color: var(--bg-color);
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+
+    border-color: var(--bg-color);
+    border-style: solid;
+    border-width: 2px;
+}
 
 .Player-list{
     overflow-y: scroll;

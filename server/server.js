@@ -380,7 +380,7 @@ app.get("/players/:SessionId/", (req, res) => {
     res.status(405).end();
     return;
   }
-  res.json({ "players": GamesData[SessionId]['Players'], })
+  res.json({ "players": GamesData[SessionId]['Players'], "dead": GamesData[SessionId]['Dead']})
 });
 
 app.get("/gov/:SessionId/", (req, res) => {
