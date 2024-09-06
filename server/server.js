@@ -717,6 +717,7 @@ function passLaw(SessionId, Law) {
 
   GamesData[SessionId]['LastP'] = GamesData[SessionId]['President']
   GamesData[SessionId]['LastC'] = GamesData[SessionId]['Chancellor']
+  GamesData[SessionId]['Chancellor'] = null
   let act = null
   if (pos > -1) {
     act = GamesData[SessionId]['Boards'][Law][pos]

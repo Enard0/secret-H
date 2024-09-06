@@ -6,7 +6,7 @@ import './Modal.css'
 
 ReactModal.setAppElement('#root');
 
-export const RoleModal = ({ _isOpen, _UserRole, _Roles, _Meet = false, UserId }) => {
+export const RoleModal = ({ _isOpen, _UserRole, _Roles, _Meet = false, UserId, _PlayerData }) => {
     const [isOpen, setIsOpen] = useState(false)
 
     const handleCloseModal = () => setIsOpen(false)
@@ -27,12 +27,12 @@ export const RoleModal = ({ _isOpen, _UserRole, _Roles, _Meet = false, UserId })
                         var tid = 1
                         for (const i of _Roles[_UserRole]) {
                             if (i != UserId) {
-                                torender.push(<div><Role _Role={_UserRole} _Id={tid} /><p>Us: {i}</p></div>)
+                                torender.push(<div _Id={tid}><Role _Role={_UserRole} /><User _Data={_PlayerData} UserId={i}/></div>)
                                 tid++
                             }
                         }
                         if (_UserRole == "F") {
-                            torender.push(<div>H:{_Roles.H} <Role _Role={"H"} _Id={0} /></div>)
+                            torender.push(<div _Id={tid}>H:{<User _Classes="H" _Data={_PlayerData} UserId={_Roles.H}/>} <Role _Role={"H"} _Id={0} /></div>)
                         }
                         return <div className="role-other">{torender}</div>
                     })() : ""}
