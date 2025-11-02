@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: "../.env" });
 
 const app = express();
-const port = 3001;
+const port = process.env.VITE_BACK_PORT;
 
 const PING = 2000;
 const DSC = 20000;
@@ -140,7 +140,7 @@ app.get("/event/:SessionId/:UserId/:EventId", (req, res) => {
   else {
     res.json({ "event": "joined", "next": EventsToSend[SessionId].length })
     EventsToSend[SessionId].push({ 'Data': { 'UserId': UserId }, 'Event': 'Spectator Joined', 'For': 'All' })
-    GamesData[SessionId]['Spectators'][UserId] = { "dsc": setTimeout(pingdsc, DSC)}//, "ping": setTimeout(badping, PING) }
+    GamesData[SessionId]['Spectators'][UserId] = { "dsc": setTimeout(pingdsc, DSC) }//, "ping": setTimeout(badping, PING) }
     return
   }
 
@@ -439,6 +439,15 @@ app.get("/boards/:SessionId", (req, res) => {
   res.json({ "boards": JSON.stringify(GamesData[SessionId]['Boards']), "Lcount": GamesData[SessionId]['CountL'], "Fcount": GamesData[SessionId]['CountF'], "Ccount": GamesData[SessionId]['CountC'] })
 });
 
+app.get("/tracker/:SessionId/:UserId", (req, res) => {
+  const SessionId = req.params.SessionId
+  if (!(SessionId in GamesData) || !('Tracker' in GamesData[SessionId])) {
+    res.statusMessage = "No Game";
+    res.status(405).end();
+    return;
+  }
+  res.json({"all":GamesData[SessionId]['Config']['Tracker'],"cur":GamesData[SessionId]['Tracker']});
+});
 
 app.get("/cards/:SessionId/:UserId", (req, res) => {
   const SessionId = req.params.SessionId
@@ -448,6 +457,16 @@ app.get("/cards/:SessionId/:UserId", (req, res) => {
     return;
   }
   res.json(GamesData[SessionId]['Cards'].slice(0, 3))
+});
+
+app.get("/cardCount/:SessionId/:UserId", (req, res) => {
+  const SessionId = req.params.SessionId
+  if (!(SessionId in GamesData) || !('Cards' in GamesData[SessionId])) {
+    res.statusMessage = "No Game";
+    res.status(405).end();
+    return;
+  }
+  res.json(GamesData[SessionId]['Cards'].length)
 });
 
 app.get("/status/:SessionId/", (req, res) => {
@@ -467,6 +486,10 @@ function endVoting(SessionId) {
   if (GamesData[SessionId]['Voting']['For'].length > GamesData[SessionId]['Players'].length / 2) {
     GamesData[SessionId]['Tracker'] = 0
     GamesData[SessionId]['Status'] = 'President Cards'
+    if (GamesData[SessionId]['CountF']>=3 && GamesData[SessionId]['Candidate'] == GamesData[SessionId]['RevRoles']['H']) {
+      EventsToSend[SessionId].push({ 'Data': { 'party': 'F', 'reason': 'Hitlah' }, 'Event': 'Win', 'For': 'All' })
+      end(SessionId)
+    }
     GamesData[SessionId]['Chancellor'] = GamesData[SessionId]['Candidate']
 
     EventsToSend[SessionId].push({
@@ -726,7 +749,7 @@ function passLaw(SessionId, Law) {
       case "Fwin":
       case "Cwin":
         EventsToSend[SessionId].push({ 'Data': { 'party': Law, 'reason': act }, 'Event': 'Win', 'For': 'All' })
-        GamesData[SessionId]['Status'] = 'Waiting'
+        end(SessionId)
         //res.sendStatus(200)
         return;
 

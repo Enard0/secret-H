@@ -38,7 +38,7 @@ export const RoleModal = ({ _isOpen, _UserRole, _Roles, _Meet = false, UserId, _
                     })() : ""}
                 </div>
                 <button className="close" onClick={handleCloseModal}>
-                    <span className="material-symbols-outlined" >
+                    <span className="material-symbols-outlined pos-abs" >
                         close
                     </span>
                 </button>
@@ -75,12 +75,12 @@ export const VotingModal = ({ _isOpen, _Candidate = 0, SessionId, UserId, _Playe
                     <div className="Candiate"><div>Candidate: <User UserId={_Candidate} _Data={_PlayerData}/></div></div>
                     <div className="VotingButtons">
                         <div className="Y" onClick={() => { handleCloseModal(); Vote(1) }}>
-                            <span className="material-symbols-outlined">
+                            <span className="material-symbols-outlined pos-abs">
                                 check_box
                             </span>
                         </div>
                         <div className="N" onClick={() => { handleCloseModal(); Vote(0) }}>
-                            <span className="material-symbols-outlined">
+                            <span className="material-symbols-outlined pos-abs">
                                 disabled_by_default
                             </span>
                         </div>
@@ -108,8 +108,9 @@ export const PostVotingModal = ({ _isOpen, _For, _Against, _Abstain, UserId, _Pl
                     <div className="postVote-for"><div>Za: </div>
                     {(() => {
                         var torender = []
+                        let key = 0;
                         for (const i of _For) {
-                            torender.push(<div><User UserId={i} _Data={_PlayerData}/></div>)
+                            torender.push(<div key={key++}><User UserId={i} _Data={_PlayerData}/></div>)
                         }
                         return torender
                     })()}
@@ -117,8 +118,9 @@ export const PostVotingModal = ({ _isOpen, _For, _Against, _Abstain, UserId, _Pl
                     <div className="postVote-against"><div>Przeciw: </div>
                     {(() => {
                         var torender = []
+                        let key = 0;
                         for (const i of _Against) {
-                            torender.push(<div><User UserId={i} _Data={_PlayerData}/></div>)
+                            torender.push(<div key={key++}><User UserId={i} _Data={_PlayerData}/></div>)
                         }
                         return torender
                     })()}
@@ -126,15 +128,16 @@ export const PostVotingModal = ({ _isOpen, _For, _Against, _Abstain, UserId, _Pl
                     <div className="postVote-abstain"><div>Wstrzymano: </div>
                     {(() => {
                         var torender = []
+                        let key = 0;
                         for (const i of _Abstain) {
-                            torender.push(<div><User UserId={i} _Data={_PlayerData}/></div>)
+                            torender.push(<div key={key++}><User UserId={i} _Data={_PlayerData}/></div>)
                         }
                         return torender
                     })()}
                     </div>
                 </div>
                 <button className="close" onClick={handleCloseModal}>
-                    <span className="material-symbols-outlined" >
+                    <span className="material-symbols-outlined pos-abs" >
                         close
                     </span>
                 </button>

@@ -1,0 +1,82 @@
+/*.draggable img{
+    pointer-events: auto;
+}*/
+
+.card>.images>img{
+    width: 100%;
+}
+
+.images{
+    position: relative;
+}
+
+.images>.Normal{
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.draggable{
+    cursor: grab;
+    animation-duration: 0.2s;
+    animation-delay: 0.2s;
+}
+
+.draggable *{
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1;
+}
+
+.released.dragged *{
+    animation-delay: inherit;
+}
+
+.draggable *{
+    animation-duration: inherit;
+    animation-delay: 0;
+}
+
+.released{
+    transition: all 0.2s;
+}
+
+.dragged{
+    position: fixed;
+    z-index: 1000;
+}
+
+.dragged .Normal,
+.draggable .Back,
+.released.dragged .Back{
+    animation-name: disapear;
+}
+
+.dragged .Back{
+    animation-name: apear;
+}
+
+.released.dragged .Normal{
+    transform: rotateY(90deg);
+    animation-name: apear;
+}
+
+@keyframes disapear {
+    0% {transform: rotateY(0def)}
+    50% {transform: rotateY(90deg)}
+    100% {transform: rotateY(90deg)}
+}
+
+@keyframes apear {
+    0% {transform: rotateY(90def)}
+    50% {transform: rotateY(90deg)}
+    100% {transform: rotateY(00deg)}
+}
+
+.dropfield{
+    width: 100px;
+    height: 100px;
+    background-color: red;
+}

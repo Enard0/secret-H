@@ -7,7 +7,7 @@ const Avatar = ({UserId,_Avatar}) => {
     return <div className="avatar"><img src={`https://cdn.discordapp.com/embed/avatars/${(UserId >>> 22) % 6}.png`} /><div className="extra"/></div>
 }
 
-const User = ({ _Classes="", _func=null, _line=false, _Data=null, UserId }) => {
+const User = ({ _Classes="", _func=null, _line=false, _Data=null, UserId, _type='C' }) => {
     let username = "NULL"   
     let AvatarH = null
     //console.log(_Data)
@@ -19,7 +19,7 @@ const User = ({ _Classes="", _func=null, _line=false, _Data=null, UserId }) => {
     return (
         <div className={`user-item ${_Classes}`} onClick={_func ? ()=>{_func(UserId)} : ()=>{}}>
             <div className={`user-data ${_Classes}`}>
-                <div className={_func ? "func" : ""}>
+                <div className={_func ? "func"+_type : ""}>
                     <Avatar UserId={UserId} _Avatar={AvatarH}/>
                     <p>{username}</p>
                 </div>

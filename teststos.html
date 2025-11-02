@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            * {
+              background-color: #222;
+            }
+            #Stos img{
+                width: 100px;
+                position: absolute;
+                top:50%;
+                left:50%;
+                transform: translate(-50%,-50%);
+                box-shadow: 1px -1px 1px #f0f ;
+            }
+            #Stos{
+                position: relative;
+                width: 200px;
+                height: 200px;
+                overflow: hidden;
+            }
+            #Card2{
+                width: 100px;
+                height: 100px;
+                background-color: #f0f;
+            }
+        </style>
+        <script>
+            var curcount = 0;
+            const notmaldis = (min,max, probing) => {
+                let out = min;
+                let step = (max-min)/probing;
+                for(let i=0; i<probing; i++){
+                    out+=Math.random()*step
+                }
+                return out
+            }
+            const addimg = (n) =>{
+                for(let i=0; i<n; i++){
+                    const stos = document.getElementById("Stos")
+                    if(n == 1 && stos.childElementCount>=10){
+                        stos.appendChild(stos.children[Math.round(Math.abs(notmaldis(-5,5,3)))]);
+                        //stos.removeChild(stos.children[0]);
+                        continue;
+                    }
+                    var img = document.createElement('img');
+                    img.src = "./front/src/assets/policy/anarchist.png";
+                    let rot =0;
+                    const probe = 5;
+                    if(Math.random()>0.5){
+                        rot = notmaldis(-90,90,probe)
+                    }else{
+                        rot = notmaldis(90,270,probe)
+                    }
+                    //let rot = Math.random()*360;
+                    /*if(rot<45){
+                        img.style.boxShadow = "-1px 1px 1px #000";
+                    }else if(rot<135){
+                        img.style.boxShadow = "1px 1px 1px #000";
+                    }else if(rot<225){
+                        img.style.boxShadow = "1px -1px 1px #000";
+                    }else if(rot<315){
+                        img.style.boxShadow = "-1px -1px 1px #000";
+                    }else{
+                        img.style.boxShadow = "-1px 1px 1px #000";
+                    }*/
+
+                    if(rot<22.5){
+                        img.style.boxShadow = "-1px 1px 1px #000"; //D
+                    }else if(rot<67.5){ 
+                        img.style.boxShadow = "0px 1px 1px #000";
+                    }else if(rot<112.5){
+                        img.style.boxShadow = "1px 1px 1px #000"; //D
+                    }else if(rot<157.5){
+                        img.style.boxShadow = "1px 0px 1px #000";
+                    }else if(rot<202.5){
+                        img.style.boxShadow = "1px -1px 1px #000"; //D
+                    }else if(rot<247.5){
+                        img.style.boxShadow = "0px -1px 1px #000";
+                    }else if(rot<292.5){
+                        img.style.boxShadow = "-1px -1px 1px #000"; //D
+                    }else if(rot<337.5){
+                        img.style.boxShadow = "-1px 0px 1px #000";
+                    }else{
+                        img.style.boxShadow = "-1px 1px 1px #000"; //D
+                    }
+                    img.style.transform = `translate(-50%,-50%) translate(${notmaldis(-15,15,probe)}px, ${notmaldis(-15,15,probe)}px) rotate(${rot}deg)`;
+                    stos.appendChild(img)
+                }
+            }
+            const stossize = (n) =>{
+                n=Math.min(15,n)
+                const stos = document.getElementById('Card2');
+                let shadow = '-0.5px 0.5px 1px #000'
+                for(let i=0; i<n;i++){
+                    shadow+=`, -${i*2}px ${i*2}px 1px rgba(0,0,0), -${i*2+1}px ${i*2+1}px 1px rgba(255,255,255)`
+                }
+                stos.style.boxShadow = shadow;
+                stos.style.transform = `translate(${n*2}px, -${n*2}px )`;
+            }
+
+            const btn = () =>{
+                addimg(1);
+                curcount++;
+                stossize(curcount);
+            }
+        </script>
+    </head>
+    <body class="all" onload="addimg(10)">
+        <button onclick="btn()">karta</button>
+        <div id="Stos">
+            </div>
+        <div id="Card2">
+
+        </div>
+    </body>
+</html>

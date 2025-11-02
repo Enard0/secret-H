@@ -7,8 +7,9 @@ import { CardsModal } from "./Modals/CardsModal";
 
 import './App.css'
 import { WinModal, CheckCardsModal, CheckRoleModal, VetoModal } from "./Modals/ActionModal";
+import Selfrole from "./roles/Selfrole";
 //import Setup from "./Startgame/Setup";
-const App = ({ SessionId, UserId }) => {
+const App = ({ SessionId, UserId, logout}) => {
 
   const [Data, setData] = useState({});
   const [State, setState] = useState('None');
@@ -148,7 +149,7 @@ const App = ({ SessionId, UserId }) => {
         getBoards()
         getStatus()
         break;
-      
+
       case 'Voting Passed':
       case 'Voting Failed':
         setVotingData(JSON.parse(event.data))
@@ -163,7 +164,7 @@ const App = ({ SessionId, UserId }) => {
         getStatus();
         setAction("")
         break;
-      
+
 
       case 'President Checked':
         getStatus()
@@ -181,7 +182,7 @@ const App = ({ SessionId, UserId }) => {
   const getPlayerData = () => {
     fetch(`/api/playerDataFull`).then(response => {
       if (response.status == 200) {
-        response.json().then(json => { setPlayerData(json)})
+        response.json().then(json => { setPlayerData(json) })
       }
     })
   }
@@ -193,6 +194,7 @@ const App = ({ SessionId, UserId }) => {
     getRoles()
     getPlayerData()
     getGov()
+    getBoards()
 
 
     // opening a connection to the server to begin receiving events from it
@@ -289,36 +291,47 @@ const App = ({ SessionId, UserId }) => {
   }
 
   return (
-    <div className={"state " + State.replace(/\s+/g, '-') + (Players.includes(UserId.toString()) ? " isPlayer" : " isSpectator") + (Players.length <= 5 && " lessThan")}>
-      <p>Event:{Event}</p>
-      <p>State:{State}</p>
-      <p>Gov:{JSON.stringify(Gov)}</p>
-      <p>isP: {Players.includes(UserId.toString())}</p>
-      <p>Data:{JSON.stringify(Data)}</p>
-      <PlayerList _PlayerData={PlayerData} _Players={Players} _Spectators={Spectators} _Roles={Roles.AllN} _Gov={Gov} _func={Func == "selectChancellor" ? selectChancellor : Func == "selectPerson" ? selectPerson : null} _Dead={Dead}/>
-      <Lobby SessionId={SessionId} UserId={UserId} _CanJoin={State == "Waiting"} _Joined={Players.includes(UserId.toString())} _Playernr={Players.length} />
+    <div className={"main state " + State.replace(/\s+/g, '-') + (Players.includes(UserId.toString()) ? " isPlayer" : " isSpectator") + (Players.length <= 5 && " lessThan")}>
+      <nav><button onClick={() => { logout(); window.location.reload(); }}><p className="material-symbols-outlined">logout</p><p>Logout</p></button>
+      <p className="Debug">Event:{Event}</p>
+      <p className="Debug">State:{State}</p>
+      <p className="Debug">Gov:{JSON.stringify(Gov)}</p>
+      <p className="Debug">isP: {Players.includes(UserId.toString())}</p>
+      <p className="Debug">Data:{JSON.stringify(Data)}</p>
+      <p>{State}</p>
+      </nav>
+      <div className="center">
+      <div className="table">
+        <Lobby SessionId={SessionId} UserId={UserId} _CanJoin={State == "Waiting"} _Joined={Players.includes(UserId.toString())} _Playernr={Players.length} />
+        
+        {State != "Waiting" && State != "None" ? <Boards _Boards={BoardData} _L={Lcount} _F={Fcount} _C={Ccount} /> : ''}
+        {State != "Waiting" && State != "None" ? <Selfrole _Role={Roles.Player} /> : ''}
+        {Players.includes(UserId.toString()) && (<div>
+          <VotingModal _isOpen={Event == "Voting"} _Candidate={"Candidate" in Data ? Data["Candidate"] : 0} UserId={UserId} SessionId={SessionId} _PlayerData={PlayerData} />
 
-      {(Gov.president == UserId && Event == 'Became President') && <button className="CConfirm" disabled={Chosen == 0 ? true : false} onClick={chooseChancellor}>Confirm chancellor</button>}
-      {(Gov.president == UserId && Action == 'Fpresident') && <button className="PConfirm" disabled={Chosen == 0 ? true : false} onClick={choosePresident}>Confirm president</button>}
-      {(Gov.president == UserId && Action == 'Fkill') && <button className="KConfirm" disabled={Chosen == 0 ? true : false} onClick={kill}>KILL</button>}
-      {(Gov.president == UserId && Action == 'Fveto') && <button className="KConfirm" disabled={Chosen == 0 ? true : false} onClick={kill}>KILL</button>}
-      {(Gov.president == UserId && Action == 'FcheckRole') && <button className="RConfirm" disabled={Chosen == 0 ? true : false} onClick={checkRole}>Confirm Role Check</button>}
-      {State != "Waiting" && State != "None" ? <Boards _Boards={BoardData} _L={Lcount} _F={Fcount} _C={Ccount} /> : ''}
-      {Players.includes(UserId.toString()) && (<div>
-        <VotingModal _isOpen={Event == "Voting"} _Candidate={"Candidate" in Data ? Data["Candidate"] : 0} UserId={UserId} SessionId={SessionId} _PlayerData={PlayerData}/>
+          <CardsModal _isOpen={Event == "Pass Laws"} _Cards={Data['Cards']} _Veto={Data['Veto']} _Chan={State == 'President Cards' ? Gov.chancellor : 0} SessionId={SessionId} UserId={UserId} _PlayerData={PlayerData} />
 
-        <CardsModal _isOpen={Event == "Pass Laws"} _Cards={Data['Cards']} _Veto={Data['Veto']} _Chan={State == 'President Cards' ? Gov.chancellor : 0} SessionId={SessionId} UserId={UserId} _PlayerData={PlayerData}/>
+          <PostVotingModal _isOpen={Event == 'Voting Failed' || Event == 'Voting Passed'} _For={VotingData['For']} _Against={VotingData['Against']} _Abstain={VotingData['Abstain']} UserId={UserId} _PlayerData={PlayerData} />
+          <RoleModal _isOpen={Event == 'Started'} _UserRole={Roles.Player} _Roles={Roles.All} UserId={UserId} _PlayerData={PlayerData} />
 
-        <PostVotingModal _isOpen={Event == 'Voting Failed' || Event == 'Voting Passed'} _For={VotingData['For']} _Against={VotingData['Against']} _Abstain={VotingData['Abstain']} UserId={UserId} _PlayerData={PlayerData}/>
-        <RoleModal _isOpen={Event == 'Started'} _UserRole={Roles.Player} _Roles={Roles.All} UserId={UserId} _PlayerData={PlayerData}/>
+          <CheckCardsModal _isOpen={UserId == Gov["president"] && Action == "FcheckCards"} SessionId={SessionId} UserId={UserId} />
+          <CheckRoleModal _isOpen={Event == 'President Checked'} _President={Data['President']} _Choosen={Data['Checked']} _Role={'Role' in Data ? Data['Role'] : null} _PlayerData={PlayerData} />
 
-        <CheckCardsModal _isOpen={UserId == Gov["president"] && Action == "FcheckCards"} SessionId={SessionId} UserId={UserId} />
-        <CheckRoleModal _isOpen={Event == 'President Checked'} _President={Data['President']} _Choosen={Data['Checked']} _Role={'Role' in Data ? Data['Role'] : null} _PlayerData={PlayerData}/>
-
-        <VetoModal _isOpen={Event == "Veto Ask"} _PlayerData={PlayerData}/>
-        <WinModal _isOpen={Event == 'Win'} _Type={Data["party"]} _PlayerData={PlayerData}/>
+          <VetoModal _isOpen={Event == "Veto Ask"} _PlayerData={PlayerData} />
+          <WinModal _isOpen={Event == 'Win'} _Type={Data["party"]} _PlayerData={PlayerData} />
+        </div>
+        )}
       </div>
-      )}
+      <div className="Playerlist">
+        <PlayerList _PlayerData={PlayerData} _Players={Players} _Spectators={Spectators} _Roles={Roles.AllN} _Gov={Gov} _func={Func == "selectChancellor" ? selectChancellor : Func == "selectPerson" ? selectPerson : null} _Dead={Dead} _type={Func == "selectChancellor" ? "C" : "P"} />
+        {(Gov.president == UserId && Event == 'Became President') && <button className="CConfirm" disabled={Chosen == 0 ? true : false} onClick={chooseChancellor}>Confirm chancellor</button>}
+        {(Gov.president == UserId && Action == 'Fpresident') && <button className="PConfirm" disabled={Chosen == 0 ? true : false} onClick={choosePresident}>Confirm president</button>}
+        {(Gov.president == UserId && Action == 'Fkill') && <button className="KConfirm" disabled={Chosen == 0 ? true : false} onClick={kill}><p className="material-symbols-outlined">point_scan</p><p>KILL</p></button>}
+        {(Gov.president == UserId && Action == 'Fveto') && <button className="KConfirm" disabled={Chosen == 0 ? true : false} onClick={kill}><p className="material-symbols-outlined">point_scan</p><p>KILL</p></button>}
+        {(Gov.president == UserId && Action == 'FcheckRole') && <button className="RConfirm" disabled={Chosen == 0 ? true : false} onClick={checkRole}>Confirm Role Check</button>}
+
+      </div>
+      </div>
     </div>
   );
 };

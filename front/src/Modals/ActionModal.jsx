@@ -34,7 +34,7 @@ export const WinModal = ({ _isOpen, _Type }) => {
                     })()}
                 </div>
                 <button className="close" onClick={handleCloseModal}>
-                    <span className="material-symbols-outlined" >
+                    <span className="material-symbols-outlined pos-abs" >
                         close
                     </span>
                 </button>
@@ -76,7 +76,7 @@ export const CheckCardsModal = ({ _isOpen, SessionId, UserId }) => {
                     </div>
                 </div>
                 <button className="close" onClick={handleCloseModal}>
-                    <span className="material-symbols-outlined" >
+                    <span className="material-symbols-outlined pos-abs" >
                         close
                     </span>
                 </button>
@@ -110,7 +110,7 @@ export const CheckRoleModal = ({ _isOpen, _President, _Choosen, _Role=null, _Pla
                     </div>
                 </div>
                 <button className="close" onClick={handleCloseModal}>
-                    <span className="material-symbols-outlined" >
+                    <span className="material-symbols-outlined pos-abs" >
                         close
                     </span>
                 </button>
@@ -147,12 +147,12 @@ export const VetoModal = ({ _isOpen, _Chancellor, SessionId, UserId, _PlayerData
                     <div className="Candiate"><div>Chancellor: <User UserId={_Chancellor} _Data={_PlayerData}/></div></div>
                     <div className="VotingButtons">
                         <div className="Y" onClick={() => { handleCloseModal(); Vote(1) }}>
-                            <span className="material-symbols-outlined">
+                            <span className="material-symbols-outlined pos-abs">
                                 check_box
                             </span>
                         </div>
                         <div className="N" onClick={() => { handleCloseModal(); Vote(0) }}>
-                            <span className="material-symbols-outlined">
+                            <span className="material-symbols-outlined pos-abs">
                                 disabled_by_default
                             </span>
                         </div>

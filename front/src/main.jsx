@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
+import DraggableCard from './Draggable/DraggableCard.jsx'
 
 function Main() {
   const queryParameters = new URLSearchParams(window.location.search)
   const code = queryParameters.get("code")
 
   const [ButtonDisabled, setButtonDisabled] = useState(true);
-  const SessionId = useRef(0);;
+  const SessionId = useRef(0);
   const UserId = useRef(0);
   const TOKEN = useRef(null);
 
@@ -35,12 +36,9 @@ function Main() {
 
   const loadToken = () => {
     const Token = localStorage.getItem("TOKEN");
-    console.log(Token)
     if (!Token) return null;
-    console.log("A")
     const TokenEXP = localStorage.getItem("TOKEN-exp");
     let timo = TokenEXP - Date.now()
-    console.log("B", timo)
     if (timo > 0) {
       setTimeout(deleteToken, timo)
       return Token
@@ -118,6 +116,9 @@ function Main() {
     })
   }
 
+  const Discard = React.createRef(null)
+  const af = (c) => {console.log("acc",c)}
+
   const ClientID = import.meta.env.VITE_DISCORD_CLIENT_ID;
   const RedirectURL = encodeURIComponent(import.meta.env.VITE_REDIRECT_URL);
 
@@ -147,12 +148,15 @@ function Main() {
           {//ButtonDisabled ? <input type="submit" disabled /> : <input type="submit" />
           }
         </form>
+        <DraggableCard dropFields={[[Discard,af]]}/>
+        <div className="dropfield" ref={Discard}>
+          test
+        </div>
       </div>
     )
-  return (<div>
-    <button onClick={() => { deleteToken(); window.location.reload(); }}>Logout</button>
-    <App SessionId={SessionId.current} UserId={UserId.current} />
-  </div>)
+  return (
+    <App SessionId={SessionId.current} UserId={UserId.current} logout={deleteToken} />
+  )
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

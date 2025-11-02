@@ -28,14 +28,16 @@
 .player.lastC p::after{
     font-weight: lighter;
     font-style: italic;
-    content: " ex\00a0chancellor";
+    content: " ex hancellor";
+    white-space: nowrap;
     color: #77f;
 }
 
 .player.lastP p::after{
     font-weight: normal;
     font-style: italic;
-    content: " ex\00a0president";
+    content: " ex president";
+    white-space: nowrap;
     color: #060;
 }
 
@@ -95,12 +97,12 @@
   
     content: "Skull";
     color: #fff;
-    background-color: var(--bg-color);
+    background-color: var(--playerlist-color);
     margin: 0;
     padding: 0;
     border-radius: 50%;
 
-    border-color: var(--bg-color);
+    border-color: var(--playerlist-color);
     border-style: solid;
     border-width: 2px;
 }
@@ -108,7 +110,10 @@
 .Player-list{
     overflow-y: scroll;
     overflow-x: hidden;
-    height: 300px;
+    height: 19vh;
     width: 400px;
-    background-color: #222;
+    background-color: var(--playerlist-color);
+
+    scrollbar-color: red orange;
+    scrollbar-width: thin;
 }

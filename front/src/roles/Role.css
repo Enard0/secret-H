@@ -1,4 +1,4 @@
-.role-card > img, .party-card > img{
+.role-card > img, .party-card > img, .selfrole >img{
     width: 100px;
     display: inline-block;
 }
@@ -9,3 +9,24 @@
     flex-wrap: wrap;
     justify-content: center;
 }*/
+
+.selfrole, .selfrole > img{
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+}
+
+.selfrole > .role-card, .selfrole:hover > .Back{
+    visibility: hidden
+}
+
+.selfrole > .Back, .selfrole:hover > .role-card{
+    visibility: visible;
+}
+
+
+.selfrole{
+    position: absolute;
+    bottom: 101px;
+    left: 10px;
+  }

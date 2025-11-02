@@ -36,10 +36,12 @@ const Cfields = { "Cadd": CaddCards, "Cchange": Cchange, "Ccheck": Ccheck, "Cemp
 const Boards = ({ _Boards, _L, _C, _F }) => {
 
     return (
-        <div className="Boards">
-            <BoardL _Board={_Boards["L"]} _Count={_L} />
-            <BoardF _Board={_Boards["F"]} _Count={_F} />
-            <BoardC _Board={_Boards["C"]} _Count={_C} />
+        <div className="Boards center">
+            <div>
+                <BoardL _Board={_Boards["L"]} _Count={_L} />
+                <BoardF _Board={_Boards["F"]} _Count={_F} />
+                <BoardC _Board={_Boards["C"]} _Count={_C} />
+            </div>
         </div>
     );
 }

@@ -32,15 +32,26 @@
     height: 0px;
     padding: 0px;
 }
-.user-data.selected>div.func{
+
+
+.user-data.selected>div.funcP{
     background-color: rgba(173, 94, 3, 0.2);
 }
 
-.player.user-item:not(.president):not(.lastC):not(.lastP) .user-data:not(.selected):hover>div.func{
+.player.user-item .user-data:not(.selected):hover>div.funcP{
     background-color: rgba(173, 94, 3, 0.1);
 }
 
-.lessThan .player.user-item:not(.president):not(.lastC) .user-data:not(.selected):hover>div.func
+
+.user-data.selected>div.funcC{
+    background-color: rgba(173, 94, 3, 0.2);
+}
+
+.player.user-item:not(.president):not(.lastC):not(.lastP) .user-data:not(.selected):hover>div.funcC{
+    background-color: rgba(173, 94, 3, 0.1);
+}
+
+.lessThan .player.user-item:not(.president):not(.lastC) .user-data:not(.selected):hover>div.funcC
 {
     background-color: rgba(173, 94, 3, 0.1);
 }
